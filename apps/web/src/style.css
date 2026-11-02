@@ -351,14 +351,14 @@ textarea {
 }
 .control-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 0.93fr) minmax(350px, 1fr);
+  grid-template-columns: minmax(340px, 420px) minmax(350px, 1fr);
   gap: 28px;
   align-items: start;
-  max-width: 1100px;
+  max-width: 1180px;
 }
 .preview-column {
   min-width: 0;
-  max-width: 470px;
+  max-width: 445px;
 }
 .preview-frame {
   overflow: hidden;
@@ -1060,14 +1060,14 @@ code {
 }
 .temple-heading {
   position: absolute;
-  top: 9.6%;
+  top: 7.8%;
   width: 100%;
   text-align: center;
   text-shadow: 0 2px 8px #120b04;
 }
 .temple-heading h2 {
   font-family: "Lora", serif;
-  font-size: 6.3cqw;
+  font-size: 6.4cqw;
   color: #ffe2a0;
   letter-spacing: -0.025em;
 }
@@ -1075,86 +1075,102 @@ code {
   font-family: "Lora", serif;
   font-size: 2.7cqw;
   color: #e0bd75;
-  margin-top: 1.3cqw;
+  margin-top: 0.6cqw;
+}
+.temple-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 2cqw;
+  flex-wrap: wrap;
 }
 .temple-attendance {
-  position: absolute;
-  top: 16.2%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 2.1cqw;
+  font-size: 2.2cqw;
   display: flex;
   align-items: center;
   gap: 5px;
   color: #e7d3a7;
   white-space: nowrap;
+  background: #24180dd9;
+  padding: 0.9cqw 1.8cqw;
+  border-radius: 6px;
+  border: 1px solid #83643b80;
 }
 .temple-attendance svg {
-  width: 3cqw;
-  height: 3cqw;
+  width: 2.7cqw;
+  height: 2.7cqw;
 }
 .temple-audience {
-  position: absolute;
-  top: 18.6%;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.1cqw;
+  gap: 0.9cqw;
   color: #f4d593;
   white-space: nowrap;
   text-shadow: 0 1px 4px #100c08;
   font-size: 2.2cqw;
+  background: #24180dd9;
+  padding: 0.9cqw 1.8cqw;
+  border-radius: 6px;
+  border: 1px solid #83643b80;
 }
 .temple-audience svg {
-  width: 2.8cqw;
-  height: 2.8cqw;
+  width: 2.7cqw;
+  height: 2.7cqw;
 }
 .temple-audience small {
   color: #d6c29a;
-  font-size: 1.65cqw;
+  font-size: 2cqw;
 }
 .audience-milestone-banner {
   color: #ffe2a0;
 }
-.temple-bottom {
+.temple-mid-notices {
   position: absolute;
-  bottom: 3.4%;
+  bottom: 40%;
   left: 5%;
   right: 5%;
   display: flex;
   flex-direction: column;
-  gap: 2.8cqw;
+  gap: 1.4cqw;
+  pointer-events: none;
+}
+.temple-bottom {
+  position: absolute;
+  bottom: 3.2%;
+  left: 5%;
+  right: 5%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5cqw;
 }
 .temple-progress {
-  background: #231d13c9;
-  border: 1px solid #97754880;
-  padding: 3cqw 3.5cqw;
-  border-radius: 7px;
+  background: #1e150db3;
+  border: 1px solid #97754859;
+  padding: 2cqw 2.8cqw;
+  border-radius: 6px;
 }
 .temple-progress > div:first-child {
   display: flex;
   justify-content: space-between;
   gap: 8px;
   align-items: center;
-  font-size: 2.3cqw;
+  font-size: 2.15cqw;
 }
 .temple-progress strong {
-  font-size: 3.4cqw;
+  font-size: 3cqw;
   color: #f4d593;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 .temple-progress small {
-  font-size: 2.4cqw;
+  font-size: 2.2cqw;
   color: #bba47c;
   font-weight: 400;
 }
 .progress-track {
   height: 3px;
   background: #6a513464;
-  margin-top: 2.5cqw;
+  margin-top: 1.6cqw;
   overflow: hidden;
   border-radius: 2px;
 }
@@ -1165,89 +1181,108 @@ code {
   transition: width 0.5s;
 }
 .offering-note {
-  display: flex;
-  gap: 2cqw;
+  display: inline-flex;
+  gap: 1.4cqw;
   align-items: center;
   align-self: flex-start;
-  background: #24170dd9;
-  padding: 2.5cqw 3cqw;
-  border-radius: 8px;
-  max-width: 85%;
-  border: 1px solid #b58c4e80;
+  background: linear-gradient(90deg, #1d130ab8 0%, #1d130a66 85%, transparent 100%);
+  padding: 1cqw 2.4cqw 1cqw 1.8cqw;
+  border-radius: 0 999px 999px 0;
+  max-width: 88%;
+  border: none;
+  border-left: 2.5px solid #e5c172;
+  text-shadow: 0 1px 4px #0f0905;
 }
 .offering-note svg {
-  color: #e3b2ad;
-  width: 5cqw;
-  height: 5cqw;
+  flex: 0 0 auto;
+  color: #f4d593;
+  width: 3.1cqw;
+  height: 3.1cqw;
 }
 .offering-note > div {
   display: flex;
-  flex-direction: column;
-  gap: 1cqw;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5cqw 1.2cqw;
   min-width: 0;
 }
 .offering-note strong {
-  font-size: 2.6cqw;
-  font-weight: 500;
+  font-size: 2.25cqw;
+  font-weight: 600;
+  color: #ffe6a8;
   overflow-wrap: anywhere;
 }
 .offering-note span {
-  font-size: 2.2cqw;
-  color: #e3c994;
+  font-size: 2.05cqw;
+  color: #edd7aa;
+}
+.offering-note span::before {
+  content: "· ";
+  color: #d4af63;
 }
 .live-announcement {
   display: flex;
-  align-items: flex-start;
-  gap: 1.8cqw;
+  align-items: center;
+  gap: 1.4cqw;
   align-self: flex-start;
-  max-width: 88%;
-  padding: 2cqw 2.6cqw;
-  border: 1px solid #97754880;
-  border-radius: 7px;
+  max-width: 90%;
+  padding: 1.1cqw 2.4cqw 1.1cqw 1.8cqw;
+  border: none;
+  border-left: 2.5px solid #e5c172;
+  border-radius: 0 8px 8px 0;
   color: #fff1d0;
-  background: #231d13d9;
-  font-size: 2.35cqw;
-  line-height: 1.55;
-  text-shadow: 0 1px 3px #100c08;
+  background: linear-gradient(90deg, #1d130ab8 0%, #1d130a5e 88%, transparent 100%);
+  font-size: 2.1cqw;
+  line-height: 1.42;
+  text-shadow: 0 1px 4px #0f0905;
 }
 .live-announcement svg {
   flex: 0 0 auto;
   color: #f4d593;
-  width: 3.4cqw;
-  height: 3.4cqw;
+  width: 3cqw;
+  height: 3cqw;
 }
 .live-announcement span {
   overflow-wrap: anywhere;
 }
 .public-prayer {
+  align-self: flex-end;
+  width: 48%;
+  max-width: 460px;
   display: flex;
-  gap: 2cqw;
+  gap: 1.3cqw;
   align-items: flex-start;
   font-family: "Lora", serif;
-  font-size: 3cqw;
-  line-height: 1.6;
-  text-shadow: 0 2px 5px #000;
-  background: #24170dc9;
-  padding: 3cqw;
-  border-radius: 7px;
-  max-height: 34cqw;
-  overflow: auto;
+  font-size: 2.35cqw;
+  font-style: italic;
+  line-height: 1.5;
+  color: #fff4da;
+  text-shadow: 0 2px 6px #000;
+  background: linear-gradient(270deg, #1e140bb8 0%, #1e140b73 88%, transparent 100%);
+  border: none;
+  border-right: 2.5px solid #e6c37a;
+  padding: 1.4cqw 2cqw;
+  border-radius: 6px 0 0 6px;
+  margin-bottom: 0.6cqw;
 }
 .public-prayer > svg {
-  width: 3.5cqw;
-  height: 3.5cqw;
-  margin-top: 1cqw;
-  color: #d7ba7c;
+  flex: 0 0 auto;
+  width: 2.7cqw;
+  height: 2.7cqw;
+  margin-top: 0.45cqw;
+  color: #e6c37a;
 }
 .public-prayer p {
   overflow-wrap: anywhere;
 }
 .public-prayer p > span {
   display: block;
+  margin-top: 0.6cqw;
   font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 2cqw;
-  color: #dbca9e;
-  margin-top: 1cqw;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 1.85cqw;
+  color: #e5c37a;
 }
 .scene-connection,
 .scene-notice {
@@ -1268,41 +1303,42 @@ code {
   line-height: 1.7;
 }
 .stream-thanks {
-  align-self: flex-start;
-  width: 74%;
-  max-width: 600px;
-  padding: 1.7cqw 2.5cqw 1.4cqw;
-  border: 1px solid #97754870;
-  border-radius: 6px;
+  align-self: flex-end;
+  width: 48%;
+  max-width: 460px;
+  padding: 1.3cqw 2cqw;
+  border: none;
+  border-right: 2.5px solid #e2bc6fb3;
+  border-radius: 6px 0 0 6px;
   color: #fff1d0;
-  background: #231d13bd;
+  background: linear-gradient(270deg, #1e140bb8 0%, #1e140b73 88%, transparent 100%);
   text-shadow: 0 1px 3px #100c08;
 }
 .stream-thanks-heading {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   color: #f4d593;
-  font-size: 2.5cqw;
+  font-size: 2.15cqw;
 }
 .stream-thanks-heading span,
 .stream-thanks > small {
   color: #d7c29a;
-  font-size: 1.8cqw;
+  font-size: 1.65cqw;
 }
 .thanks-list {
   list-style: none;
   padding: 0;
-  margin: 1cqw 0;
+  margin: 0.7cqw 0 0;
 }
 .thanks-list li {
   display: grid;
-  grid-template-columns: 4cqw minmax(0, 1fr) auto;
+  grid-template-columns: 3.2cqw minmax(0, 1fr) auto;
   align-items: center;
-  gap: 1cqw;
-  min-height: 3.5cqw;
-  font-size: 2cqw;
+  gap: 0.8cqw;
+  min-height: 2.9cqw;
+  font-size: 1.85cqw;
   font-variant-numeric: tabular-nums;
 }
 .thanks-rank {
@@ -1318,24 +1354,31 @@ code {
   font-weight: 500;
 }
 .thanks-empty {
-  margin: 1.5cqw 0;
+  margin: 0.7cqw 0 0;
   color: #ddd0b4;
-  font-size: 2cqw;
+  font-size: 1.75cqw;
 }
 .stream-comment-guide {
-  margin: -1cqw 0;
-  color: #f4e4c0;
-  font-size: 1.85cqw;
-  line-height: 1.5;
-  text-shadow: 0 1px 4px #100c08;
+  position: absolute;
+  top: 16.2%;
+  left: 5%;
+  right: 5%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.2cqw;
 }
-.stream-comment-guide b {
-  color: #ffe0a0;
-  font-weight: 600;
-}
-.stream-comment-guide span {
-  display: block;
-  color: #d9c69f;
+.stream-comment-guide kbd {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 3.1cqw;
+  font-weight: 700;
+  color: #ffeab3;
+  background: #23160be8;
+  border: 1.5px solid #d4af63b3;
+  padding: 0.9cqw 2.8cqw;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px #00000080;
 }
 .viewer-audio-control {
   position: absolute;
@@ -1462,8 +1505,8 @@ code {
   }
   .control-grid {
     gap: 38px;
-    grid-template-columns: 440px minmax(430px, 1fr);
-    max-width: 1190px;
+    grid-template-columns: 660px minmax(430px, 1fr);
+    max-width: 1520px;
   }
   .panel {
     padding: 27px;
@@ -1779,10 +1822,7 @@ code {
   }
 }
 .temple-heading {
-  top: 8.2%;
-}
-.temple-attendance {
-  top: 17.2%;
+  top: 7.8%;
 }
 .description {
   font-size: 11px;

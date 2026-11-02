@@ -136,7 +136,14 @@ export interface Announcement {
   id: string;
   at: number;
   sessionId: string;
-  kind: "gift" | "follow" | "share" | "audience-milestone" | "share-prompt";
+  kind:
+    | "join"
+    | "prayer"
+    | "gift"
+    | "follow"
+    | "share"
+    | "audience-milestone"
+    | "share-prompt";
   text: string;
 }
 export interface Snapshot {

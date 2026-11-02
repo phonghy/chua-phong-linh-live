@@ -25,7 +25,7 @@ if (production) {
 }
 const port = Number(process.env.PORT ?? 3000);
 temple.server.listen(port, "127.0.0.1", () =>
-  console.log(`Chùa Phong Linh LIVE · http://127.0.0.1:${port}/admin`),
+  console.log(`Tâm An Vạn Sự An LIVE · http://lvh.me/admin`),
 );
 let closing = false;
 for (const signal of ["SIGINT", "SIGTERM"] as const)

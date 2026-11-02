@@ -55,7 +55,7 @@ export function normalizeTikTok(
     return {
       ...base,
       type: "comment",
-      text: String(payload.comment ?? "").slice(0, 500),
+      text: String(payload.comment ?? payload.content ?? "").slice(0, 500),
     };
   if (type === "member") return { ...base, type: "join" };
   if (type === "like")
@@ -171,7 +171,7 @@ export class TikTokConnector implements LiveConnector {
       if (!Connection) throw new Error("unsupported-sdk");
       this.connection = new Connection(this.username, {
         processInitialData: false,
-        enableExtendedGiftInfo: true,
+        enableExtendedGiftInfo: false,
         ...(this.key ? { signApiKey: this.key } : {}),
       });
       for (const type of [
@@ -189,7 +189,7 @@ export class TikTokConnector implements LiveConnector {
           if (event) this.emit(event);
         });
       this.connection.on("error", () => {
-        if (!this.stopped) {
+        if (!this.stopped && !this.connection?.isConnected) {
           this.report("error", "Lỗi kết nối TikTok. Đang thử lại.");
           this.schedule();
         }
@@ -213,8 +213,17 @@ export class TikTokConnector implements LiveConnector {
         this.attempt = 0;
         this.report("connected", `Đang nhận sự kiện @${this.username}`);
       }
-    } catch {
+    } catch (err: any) {
       if (!this.stopped) {
+        const msg = String(err?.name ?? "") + " " + String(err?.message ?? "");
+        if (/UserOfflineError|isn't online|not online|Offline/i.test(msg)) {
+          this.stopped = true;
+          this.report(
+            "error",
+            `Tài khoản @${this.username} hiện không phát LIVE. Hãy bật LIVE trên TikTok trước rồi bấm Kết nối lại.`,
+          );
+          return;
+        }
         this.report(
           "error",
           "Chưa kết nối được. Kiểm tra tài khoản đang LIVE và cấu hình ký.",

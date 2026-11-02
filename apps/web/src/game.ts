@@ -51,9 +51,9 @@ interface Particle {
 
 const MAX_ALTAR_HONOR = 3;
 const ALTAR_SPOTS = [
-  { x: 540, y: 1058, scale: 0.96 }, // Vị trí chính giữa trước lư hương
-  { x: 382, y: 1076, scale: 0.92 }, // Vị trí bên trái bàn thờ
-  { x: 698, y: 1076, scale: 0.92 }, // Vị trí bên phải bàn thờ
+  { x: 540, y: 1052, scale: 0.74 }, // Vị trí chính giữa trước lư hương
+  { x: 416, y: 1068, scale: 0.71 }, // Vị trí bên trái bàn thờ
+  { x: 664, y: 1068, scale: 0.71 }, // Vị trí bên phải bàn thờ
 ];
 const HONOR_ACTION_TEXT: Record<NonNullable<Visitor["action"]>, string> = {
   lotus: "✦ Dâng Hoa Lễ Phật",
@@ -85,8 +85,8 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
     private seen = new Set<string>();
     private cameraMode = "";
     private camX = 540;
-    private camY = 950;
-    private camZoom = 1.07;
+    private camY = 960;
+    private camZoom = 1;
     private ceremonyBoostUntil = 0;
     private started = 0;
     private lastStats = 0;
@@ -108,7 +108,7 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
       super("temple");
     }
     preload() {
-      this.load.image("hall", "/assets/temple-hall.webp");
+      this.load.image("hall", "/assets/temple-hall-wide.jpg");
       this.load.image("altar", "/assets/altar.webp");
       this.load.spritesheet("visitor", "/assets/visitors.png", {
         frameWidth: 512,
@@ -126,7 +126,7 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
       ).matches;
       this.hall = this.add
         .image(540, 960, "hall")
-        .setDisplaySize(capture ? 1080 : 1160, capture ? 1920 : 2050)
+        .setDisplaySize(1120, 1960)
         .setDepth(0);
       const canvas = document.createElement("canvas");
       canvas.width = 256;
@@ -152,14 +152,14 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
       petal.generateTexture("petal", 24, 32);
       petal.destroy();
       this.light = this.add
-        .image(540, 670, "glow")
-        .setDisplaySize(850, 1050)
+        .image(540, 760, "glow")
+        .setDisplaySize(640, 780)
         .setDepth(1)
         .setBlendMode(Phaser.BlendModes.ADD);
       this.altar = this.add
-        .image(540, 1050, "altar")
+        .image(540, 1028, "altar")
         .setOrigin(0.5, 1)
-        .setDisplaySize(610, 762)
+        .setDisplaySize(416, 520)
         .setDepth(2);
       for (const x of [160, 920])
         this.lanterns.push(
@@ -313,12 +313,12 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
             label: this.add
               .text(0, 0, v.name, {
                 fontFamily: '"Be Vietnam Pro"',
-                fontSize: "22px",
+                fontSize: "17px",
                 color: "#fff0d1",
-                backgroundColor: "#291b12e8",
-                padding: { left: 8, right: 8, top: 4, bottom: 4 },
+                backgroundColor: "#24170ecf",
+                padding: { left: 6, right: 6, top: 2, bottom: 2 },
               })
-              .setOrigin(0.5, 0),
+              .setOrigin(0.5, 1),
             curX: 540,
             curY: 1350,
             curScale: 0.85,
@@ -447,50 +447,67 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
         if (capture || this.reducedMotion) {
           if (mode !== this.cameraMode) {
             this.cameraMode = mode;
-            this.cameras.main.setZoom(mode === "close" ? 1.42 : 1);
-            this.cameras.main.centerOn(540, mode === "close" ? 790 : 960);
+            this.cameras.main.setZoom(mode === "close" ? 1.78 : 1.01);
+            this.cameras.main.centerOn(540, mode === "close" ? 895 : 960);
           }
         } else {
-          // Nhịp lia máy cực kỳ chậm rãi, tĩnh tại và thanh tịnh (~95 giây / chu kỳ)
+          // Chu trình lia máy đa góc nhìn (Giữa, Đá Trái, Đá Phải × Xa, Trung, Cận sát tượng & người vái lạy)
           const ceremonyFocus = this.ceremonyBoostUntil > time ? 1 : 0;
           let targetZoom: number;
           let targetX: number;
           let targetY: number;
 
           if (state.settings.autoCamera) {
-            const tourWave = (1 - Math.cos(visualTime * 0.000066)) * 0.5;
-            const baseSweep =
-              mode === "close" ? 0.5 + tourWave * 0.5 : tourWave * 0.85;
-            const focusSweep = Math.min(1, baseSweep + ceremonyFocus * 0.16);
-            targetZoom =
-              1.06 +
-              focusSweep * 0.26 +
-              Math.sin(visualTime * 0.00014) * 0.012;
+            const tourKeyframes = [
+              { x: 540, y: 960, zoom: 1.01 }, // 1. Giữa · Xa (Toàn cảnh đại điện)
+              { x: 435, y: 960, zoom: 1.18 }, // 2. Đá Trái · Trung (Dãy phật tử & hàng cột trái)
+              { x: 540, y: 885, zoom: 1.82 }, // 3. Giữa · Cận sát tượng Phật & những người đang vái lạy
+              { x: 645, y: 960, zoom: 1.18 }, // 4. Đá Phải · Trung (Dãy phật tử & hàng cột phải)
+              { x: 540, y: 1060, zoom: 1.16 }, // 5. Giữa · Trung (Hành lang giữa & hai bên lễ đường)
+              { x: 470, y: 920, zoom: 1.72 }, // 6. Đá Trái · Cận sát người vái lạy & bàn thờ bên trái
+              { x: 610, y: 920, zoom: 1.72 }, // 7. Đá Phải · Cận sát người vái lạy & bàn thờ bên phải
+              { x: 540, y: 960, zoom: 1.01 }, // 8. Giữa · Xa (Trở về toàn cảnh tĩnh tại)
+            ];
+            const stageDuration = 13500;
+            const rawStage =
+              (visualTime / stageDuration) % tourKeyframes.length;
+            const idx = Math.floor(rawStage);
+            const nextIdx = (idx + 1) % tourKeyframes.length;
+            const blend = (1 - Math.cos((rawStage - idx) * Math.PI)) * 0.5;
+            const cur = tourKeyframes[idx];
+            const nxt = tourKeyframes[nextIdx];
+
             targetX =
-              540 +
-              Math.sin(visualTime * 0.000095) * 24 +
-              Math.cos(visualTime * 0.00005) * 10;
+              cur.x +
+              (nxt.x - cur.x) * blend +
+              Math.sin(visualTime * 0.00009) * 8;
             targetY =
-              965 -
-              focusSweep * 165 +
-              Math.cos(visualTime * 0.00008) * 14;
+              cur.y +
+              (nxt.y - cur.y) * blend -
+              ceremonyFocus * 20 +
+              Math.cos(visualTime * 0.00008) * 6;
+            targetZoom =
+              cur.zoom +
+              (nxt.zoom - cur.zoom) * blend +
+              ceremonyFocus * 0.08 +
+              Math.sin(visualTime * 0.00012) * 0.008;
           } else if (mode === "close") {
             targetZoom =
-              1.36 +
-              ceremonyFocus * 0.04 +
-              Math.sin(visualTime * 0.00012) * 0.02;
-            targetX = 540 + Math.sin(visualTime * 0.00009) * 18;
-            targetY = 805 + Math.cos(visualTime * 0.00008) * 12;
+              1.78 +
+              ceremonyFocus * 0.08 +
+              Math.sin(visualTime * 0.00012) * 0.015;
+            targetX = 540 + Math.sin(visualTime * 0.00009) * 45;
+            targetY = 895 + Math.cos(visualTime * 0.00008) * 18;
           } else {
             targetZoom =
-              1.07 +
-              ceremonyFocus * 0.05 +
-              Math.sin(visualTime * 0.00011) * 0.018;
-            targetX = 540 + Math.sin(visualTime * 0.00009) * 22;
+              1.02 +
+              ceremonyFocus * 0.04 +
+              Math.sin(visualTime * 0.00011) * 0.01;
+            targetX = 540 + Math.sin(visualTime * 0.00009) * 20;
             targetY =
-              950 -
-              ceremonyFocus * 30 +
-              Math.cos(visualTime * 0.00008) * 14;
+              960 -
+              ceremonyFocus * 18 +
+              Math.cos(visualTime * 0.00008) * 10;
           }
 
           const smooth = Math.min(1, Math.max(0.004, delta * 0.00075));
@@ -503,10 +520,10 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
 
           // Hiệu ứng chiều sâu 2.5D nhẹ nhàng theo nhịp thở của máy quay
           const dx = this.camX - 540;
-          const dy = this.camY - 920;
+          const dy = this.camY - 960;
           this.hall.setPosition(540 + dx * 0.18, 960 + dy * 0.18);
-          this.altar.setPosition(540 + dx * 0.04, 1050 + dy * 0.04);
-          this.light.setPosition(540 + dx * 0.06, 670 + dy * 0.06);
+          this.altar.setPosition(540 + dx * 0.04, 1028 + dy * 0.04);
+          this.light.setPosition(540 + dx * 0.06, 760 + dy * 0.06);
           this.lanterns.forEach((l, i) => {
             const baseX = i === 0 ? 160 : 920;
             const sway = Math.sin(visualTime * 0.0006 + i * 1.7) * 4;
@@ -550,12 +567,20 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
         for (const v of state.visitors) {
           const art = this.visitors.get(v.id);
           if (!art) continue;
-          const row = Math.floor(v.slot / 5),
-            col = v.slot % 5,
-            spread = 108 + row * 17,
-            baseX = 540 + (col - 2) * spread,
-            baseY = 1190 + row * 84,
-            baseScale = 0.8 + row * 0.085;
+          // Xếp 2 bên (trái/phải), mỗi hàng 8 người dàn ra 2 bên, giữ nguyên hành lang giữa, bỏ hàng đầu tiên (bắt đầu từ y=1196) và kéo dài 10 hàng xuống sát cuối màn hình (y=1790)
+          const side = v.slot % 2; // 0: Bên trái, 1: Bên phải
+          const sideIdx = Math.floor(v.slot / 2);
+          const row = Math.min(9, Math.floor(sideIdx / 8)); // 0..9 (10 hàng kéo xuống gần cuối màn hình)
+          const col = sideIdx % 8; // 0..7 (8 người mỗi hàng, col 0 sát hành lang giữa nhất)
+          const aisleHalf = 76 + row * 5;
+          const colGap = 46 + row * 1.1;
+          const baseX =
+            side === 0
+              ? 540 - aisleHalf - col * colGap
+              : 540 + aisleHalf + col * colGap;
+          const baseY = 1196 + row * 66;
+          const baseScale = 0.58 + row * 0.032;
+          const aisleX = side === 0 ? 524 : 556;
 
           const honorSlot = capture
             ? undefined
@@ -565,30 +590,77 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
             : { x: baseX, y: baseY, scale: baseScale };
 
           if (!art.initialized || capture) {
-            art.curX = targetSpot.x;
-            art.curY = targetSpot.y;
-            art.curScale = targetSpot.scale;
+            if (!capture && Math.abs(now - v.joinedAt) < 12000) {
+              // Người mới vào đi từ dưới cùng của hành lang giữa đi lên rồi mới rẽ vào chỗ ngồi
+              art.curX = aisleX;
+              art.curY = 1890;
+              art.curScale = 0.88;
+            } else {
+              art.curX = targetSpot.x;
+              art.curY = targetSpot.y;
+              art.curScale = targetSpot.scale;
+            }
             art.initialized = true;
           } else {
-            const walkLerp = Math.min(1, Math.max(0.02, delta * 0.0032));
-            art.curX += (targetSpot.x - art.curX) * walkLerp;
-            art.curY += (targetSpot.y - art.curY) * walkLerp;
-            art.curScale += (targetSpot.scale - art.curScale) * walkLerp;
+            let wpX = targetSpot.x;
+            let wpY = targetSpot.y;
+            let wpScale = targetSpot.scale;
+
+            if (honorSlot) {
+              // Lên thắp hương / vái lạy: Đi từ hàng ghế ra hành lang giữa trước, rồi mới đi thẳng lên bàn thờ
+              if (art.curY > 1095 && Math.abs(art.curX - aisleX) > 16) {
+                wpX = aisleX;
+                wpY = art.curY;
+                wpScale = baseScale;
+              } else if (art.curY > targetSpot.y + 24) {
+                wpX = aisleX;
+                wpY = targetSpot.y;
+                wpScale = targetSpot.scale;
+              }
+            } else {
+              // Vào chỗ ngồi (hoặc từ bàn thờ lùi về): Đi dọc hành lang giữa đến đúng hàng ghế rồi mới rẽ vào chỗ ngồi
+              if (Math.abs(art.curY - baseY) > 14) {
+                if (Math.abs(art.curX - aisleX) > 18 && art.curY < 1100) {
+                  wpX = aisleX;
+                  wpY = art.curY;
+                } else {
+                  wpX = aisleX;
+                  wpY = baseY;
+                }
+                wpScale = Phaser.Math.Clamp(
+                  0.58 + ((art.curY - 1196) / (1790 - 1196)) * (0.87 - 0.58),
+                  0.55,
+                  0.88,
+                );
+              }
+            }
+
+            const dxWp = wpX - art.curX;
+            const dyWp = wpY - art.curY;
+            const distWp = Math.hypot(dxWp, dyWp);
+            const walkSpeed = 235;
+            const step = Math.min(distWp, (walkSpeed * delta) / 1000);
+            if (distWp > 0.5) {
+              art.curX += (dxWp / distWp) * step;
+              art.curY += (dyWp / distWp) * step;
+            }
+            art.curScale +=
+              (wpScale - art.curScale) * Math.min(1, delta * 0.008);
           }
 
           const distToTarget = Math.hypot(
             targetSpot.x - art.curX,
             targetSpot.y - art.curY,
           );
-          const isWalking = !capture && distToTarget > 18;
-          // Hiệu ứng nhịp bước chân nhẹ nhàng khi đang tiến lên bàn thờ hoặc lùi về
+          const isWalking = !capture && distToTarget > 8;
+          // Hiệu ứng nhịp bước chân nhẹ nhàng khi đang tiến lên bàn thờ hoặc đi dọc hành lang
           const walkBob = isWalking
             ? Math.abs(Math.sin(visualTime * 0.012 + v.slot)) * -6
             : 0;
 
-          const entry = Phaser.Math.Clamp((now - v.joinedAt) / 1400, 0, 1),
+          const entry = Phaser.Math.Clamp((now - v.joinedAt) / 800, 0, 1),
             exit = Phaser.Math.Clamp((v.expiresAt - now) / 1800, 0, 1),
-            offset = (1 - entry) * 100 - (1 - exit) * 80;
+            offset = -(1 - exit) * 80;
           const pose = this.pose(v, now, honorSlot, isWalking),
             breathe =
               pose === 1 && !isWalking
@@ -633,10 +705,10 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
               art.label.setText(honorLabel);
               art.label.setStyle({
                 fontFamily: '"Be Vietnam Pro"',
-                fontSize: "21px",
+                fontSize: "20px",
                 color: "#ffe8a3",
                 backgroundColor: "#3b2310f2",
-                padding: { left: 10, right: 10, top: 5, bottom: 5 },
+                padding: { left: 9, right: 9, top: 4, bottom: 4 },
               });
             }
           } else {
@@ -645,22 +717,20 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
               art.label.setText(v.name);
               art.label.setStyle({
                 fontFamily: '"Be Vietnam Pro"',
-                fontSize: "22px",
+                fontSize: "17px",
                 color: "#fff0d1",
-                backgroundColor: "#291b12e8",
-                padding: { left: 8, right: 8, top: 4, bottom: 4 },
+                backgroundColor: "#24170ecf",
+                padding: { left: 6, right: 6, top: 2, bottom: 2 },
               });
             }
           }
 
+          const staggerY = honorSlot || isWalking ? 0 : (col % 2) * 14;
           art.label
-            .setPosition(drawX, art.curY + 10)
-            .setScale(Math.min(1, drawScale))
-            .setVisible(
-              entry === 1 &&
-                exit === 1 &&
-                (!!honorSlot || (!!v.action && now - v.actionAt < 5000)),
-            )
+            .setPosition(drawX, drawY - 134 * drawScale - staggerY)
+            .setScale(Math.min(1, drawScale * 0.92))
+            .setAlpha(alpha)
+            .setVisible(alpha > 0.05)
             .setDepth(2600);
         }
       }

@@ -328,7 +328,7 @@ export class Engine {
     if (!visitor) {
       let slot = 0;
       while (s.visitors.some((v) => v.slot === slot)) slot++;
-      if (s.visitors.length >= 40) {
+      if (s.visitors.length >= 160) {
         const oldest = [...s.visitors].sort(
           (a, b) => a.expiresAt - b.expiresAt,
         )[0];
@@ -359,12 +359,48 @@ export class Engine {
       this.commit(() => {
         const s = this.state,
           now = this.now();
-        if (event.source === s.session.source) {
+        if (event.source === s.session.source || this.connector.mode === "mock") {
           if (event.type === "audience") {
             const previousPeak = s.audience.peak;
             s.audience.current = event.count;
             s.audience.updatedAt = now;
             s.audience.peak = Math.max(previousPeak, event.count);
+            if (event.source === "mock") {
+              s.visitors = s.visitors.filter((v) => v.expiresAt > now);
+              const targetVisitors = Math.min(160, event.count);
+              const sampleNames = [
+                "Minh Tâm", "An Nhiên", "Thanh Tùng", "Bảo Ngọc", "Hoàng Nam",
+                "Thùy Dương", "Đức Phúc", "Ngọc Ánh", "Gia Huy", "Khánh Linh",
+                "Tuấn Kiệt", "Phương Thảo", "Quang Hải", "Mai Anh", "Hữu Phước",
+                "Thiện Nhân", "Bình An", "Diệu Hiền", "Trọng Nghĩa", "Hồng Nhung",
+                "Nhật Minh", "Kim Ngân", "Văn Khoa", "Tường Vy", "Mạnh Hùng",
+                "Lan Hương", "Quốc Bảo", "Thanh Hà", "Đình Phong", "Mỹ Duyên",
+                "Hoài An", "Tuệ Mẫn",
+              ];
+              if (s.visitors.length > targetVisitors) {
+                s.visitors = s.visitors.slice(0, targetVisitors);
+              } else {
+                let added = 0;
+                while (s.visitors.length < targetVisitors) {
+                  let slot = 0;
+                  while (s.visitors.some((v) => v.slot === slot)) slot++;
+                  const baseName = sampleNames[slot % sampleNames.length];
+                  const suffix = slot >= sampleNames.length ? ` ${Math.floor(slot / sampleNames.length) + 1}` : "";
+                  s.visitors.push({
+                    id: `mock:aud:${slot}`,
+                    name: `${baseName}${suffix}`,
+                    slot,
+                    variant: slot % 3,
+                    joinedAt: added < 6 ? now : now - 15000,
+                    action: null,
+                    actionAt: 0,
+                    expiresAt: now + 300000,
+                  });
+                  s.totals.visits++;
+                  added++;
+                }
+              }
+            }
             const candidates = [100, 250, 500].filter(
               (n) => n > previousPeak && n <= event.count,
             );
@@ -393,7 +429,7 @@ export class Engine {
               );
               this.announce(
                 "audience-milestone",
-                `Chùa Phong Linh hân hoan đón ${milestone} người đang cùng theo dõi.`,
+                `Chùa Tâm An hân hoan đón ${milestone} người đang cùng theo dõi.`,
               );
               s.lastAudienceCelebration = now;
             }
@@ -408,7 +444,7 @@ export class Engine {
               s.shareThanks[key] = now;
               this.announce(
                 "share",
-                `Chùa Phong Linh xin cảm ơn ${this.safeName(event.user.name)} đã chia sẻ LIVE.`,
+                `Chùa Tâm An xin cảm ơn ${this.safeName(event.user.name)} đã chia sẻ LIVE.`,
               );
             }
             const keys = Object.keys(s.shareThanks);
@@ -435,8 +471,18 @@ export class Engine {
         const [command, ...words] = event.text.trim().split(/\s+/);
         const actions: Record<string, Action> = {
           "!le": "bow",
+          "!lễ": "bow",
+          le: "bow",
+          lễ: "bow",
+          "!lay": "bow",
+          "!lạy": "bow",
           "!nhang": "incense",
+          nhang: "incense",
+          "!huong": "incense",
+          "!hương": "incense",
           "!cau": "prayer",
+          "!cầu": "prayer",
+          cầu: "prayer",
         };
         const normalizedCommand = command.toLowerCase();
         action = Object.hasOwn(actions, normalizedCommand)
@@ -457,25 +503,24 @@ export class Engine {
         } else {
           s.cooldowns[`viewer:${event.user.id}`] = now;
           if (action === "prayer") {
-            if (s.prayers.filter((p) => p.status === "pending").length >= 200) {
-              action = undefined;
-              result = "prayer-queue-full";
-            } else {
-              s.prayers.push({
-                id: ++s.prayerId,
-                userName: event.user.name,
-                text: [...words.join(" ")].slice(0, 240).join(""),
-                status: "pending",
-                createdAt: now,
-              });
-              s.prayerCredits[String(s.prayerId)] = {
-                userId: event.user.id,
-                userName: event.user.name,
-                sessionId: s.session.id,
-                source: event.source,
-              };
-              result = "pending-approval";
+            const prayerText = [...words.join(" ").trim()]
+              .slice(0, 240)
+              .join("");
+            s.prayers.push({
+              id: ++s.prayerId,
+              userName: event.user.name,
+              text: prayerText,
+              status: "approved",
+              createdAt: now,
+            });
+            if (event.source === s.session.source || this.connector.mode === "mock") {
+              this.score(s.session.participation, event.user, 1);
+              this.announce(
+                "prayer",
+                `Chùa Tâm An thành tâm cầu nguyện cùng ${this.safeName(event.user.name)}: ${prayerText}`,
+              );
             }
+            result = "prayer";
           }
         }
       } else if (event.type === "gift") {
@@ -495,7 +540,7 @@ export class Engine {
           s.thankedStreaks[key] = true;
           this.announce(
             "gift",
-            `Chùa Phong Linh xin cảm ơn ${this.safeName(event.user.name)} đã gửi ${s.streaks[key]} phần quà.`,
+            `Chùa Tâm An xin cảm ơn ${this.safeName(event.user.name)} đã gửi ${s.streaks[key]} phần quà.`,
           );
         }
         if (!count) result = "streak-already-counted";
@@ -527,12 +572,25 @@ export class Engine {
           s.followThanks[key] = now;
           this.announce(
             "follow",
-            `Chùa Phong Linh xin cảm ơn ${this.safeName(event.user.name)} đã theo dõi.`,
+            `Chùa Tâm An xin cảm ơn ${this.safeName(event.user.name)} đã theo dõi.`,
+          );
+        }
+      } else if (event.type === "join") {
+        const key = JSON.stringify(["join", event.source, event.user.id]);
+        if (
+          event.source === s.session.source &&
+          (s.followThanks[key] === undefined ||
+            now - s.followThanks[key] >= 60000)
+        ) {
+          s.followThanks[key] = now;
+          this.announce(
+            "join",
+            `Chùa Tâm An xin chào đón ${this.safeName(event.user.name)} đã ghé thăm chùa.`,
           );
         }
       }
       if (action) {
-        if (event.source === s.session.source) {
+        if (event.source === s.session.source || this.connector.mode === "mock") {
           if (event.type === "gift")
             this.score(s.session.gifts, event.user, points * count);
           else if (
@@ -615,24 +673,27 @@ export class Engine {
     });
   }
   moderate(id: number, status: "approved" | "rejected") {
-    const prayer = this.state.prayers.find(
-      (p) => p.id === id && p.status === "pending",
-    );
+    const prayer = this.state.prayers.find((p) => p.id === id);
     if (!prayer) return false;
     this.commit(() => {
       prayer.status = status;
       const credit = this.state.prayerCredits[String(id)];
-      if (
-        status === "approved" &&
-        credit &&
-        credit.sessionId === this.state.session.id &&
-        credit.source === this.state.session.source
-      )
-        this.score(
-          this.state.session.participation,
-          { id: credit.userId, name: credit.userName },
-          1,
+      if (status === "approved") {
+        if (
+          credit &&
+          credit.sessionId === this.state.session.id &&
+          credit.source === this.state.session.source
+        )
+          this.score(
+            this.state.session.participation,
+            { id: credit.userId, name: credit.userName },
+            1,
+          );
+        this.announce(
+          "prayer",
+          `Chùa Tâm An thành tâm cầu nguyện cùng ${this.safeName(prayer.userName)}: ${prayer.text}`,
         );
+      }
       delete this.state.prayerCredits[String(id)];
     });
     return true;

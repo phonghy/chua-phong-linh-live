@@ -240,16 +240,13 @@ export function Admin() {
     const tick = async () => {
       try {
         if (index === 0)
-          for (let n = 0; n < 24 && active; n++)
-            await api(
-              "events",
-              makeEvent(
-                "join",
-                names[n % names.length],
-                {},
-                `demo:visitor:${n}`,
-              ),
-            );
+          await api("events", {
+            id: crypto.randomUUID(),
+            timestamp: Date.now(),
+            source: "mock",
+            type: "audience",
+            count: Math.max(160, Number.isInteger(audienceCount) && audienceCount > 0 ? audienceCount : 160),
+          });
         if (!active) return;
         const n = index++,
           user = names[n % names.length];
@@ -266,7 +263,7 @@ export function Admin() {
                 streakId: crypto.randomUUID(),
                 final: true,
               },
-              `demo:visitor:${n % 24}`,
+              `mock:aud:${n % 160}`,
             ),
           );
         else
@@ -276,7 +273,7 @@ export function Admin() {
               "comment",
               user,
               { text: ["!le", "!nhang"][n % 2] },
-              `demo:visitor:${n % 24}`,
+              `mock:aud:${n % 160}`,
             ),
           );
         if (active) timer = setTimeout(tick, 1800);
@@ -320,7 +317,7 @@ export function Admin() {
             <Flower2 size={30} strokeWidth={1.4} />
           </span>
           <span>
-            Phong Linh<small>Không gian an lành</small>
+            Tâm An Vạn Sự An<small>Không gian an lành</small>
           </span>
         </a>
         <nav aria-label="Điều hướng quản trị">
@@ -1317,7 +1314,7 @@ export function Admin() {
           </div>
         )}
         <footer className="page-footer">
-          <span>Chùa Phong Linh LIVE</span>
+          <span>Tâm An Vạn Sự An LIVE</span>
           <span>
             <ShieldCheck size={13} />
             Được lưu trên máy của bạn

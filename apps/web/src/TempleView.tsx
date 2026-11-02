@@ -34,14 +34,31 @@ export function TempleView({
   }, [client]);
   useEffect(() => {
     if (preview) return;
-    sound.current = new Soundscape();
-    if (overlay && new URLSearchParams(location.search).get("audio") === "1")
-      void sound.current
+    const scape = (sound.current = new Soundscape());
+    const wantAudio =
+      overlay && new URLSearchParams(location.search).get("audio") === "1";
+    const tryEnable = () => {
+      void scape
         .enable()
-        .then(() => setAudio(sound.current?.active ?? false))
+        .then(() => {
+          const isActive = scape.active;
+          setAudio(isActive);
+          if (isActive) {
+            window.removeEventListener("pointerdown", tryEnable);
+            window.removeEventListener("keydown", tryEnable);
+          }
+        })
         .catch(() => {});
+    };
+    if (wantAudio) {
+      tryEnable();
+      window.addEventListener("pointerdown", tryEnable);
+      window.addEventListener("keydown", tryEnable);
+    }
     return () => {
-      void sound.current?.destroy();
+      window.removeEventListener("pointerdown", tryEnable);
+      window.removeEventListener("keydown", tryEnable);
+      void scape.destroy();
       sound.current = undefined;
     };
   }, [preview, overlay]);
@@ -108,50 +125,46 @@ export function TempleView({
   return (
     <div
       className={`temple-stage ${preview ? "is-preview" : ""} ${overlay ? "is-overlay" : ""}`}
-      aria-label="Không gian Chùa Phong Linh"
+      aria-label="Không gian Tâm An Vạn Sự An"
     >
       <div ref={parent} className="game-canvas" />
       <div className="temple-vignette" />
       <div className="temple-top">
-        <span className="temple-mark">
-          <Flower2 size={20} /> PHONG LINH
-        </span>
+        <div className="temple-meta-row">
+          <div className="temple-attendance">
+            <Users size={14} />
+            <span>{state?.visitors.length ?? 0} khách hiện diện</span>
+          </div>
+          <div className="temple-audience" aria-label="Số người xem đồng thời">
+            <Eye size={14} />
+            <span data-testid="audience-value">{audienceLabel}</span>
+          </div>
+        </div>
         <span className="temple-mode">
           <i />
           {connectionLabel}
         </span>
       </div>
       <div className="temple-heading">
-        <h2>Chùa Phong Linh</h2>
+        <h2>Tâm An Vạn Sự An</h2>
         <p>Một niệm an lành, ngàn hoa nở.</p>
       </div>
-      <div className="temple-attendance">
-        <Users size={14} />
-        <span>{state?.visitors.length ?? 0} khách hiện diện</span>
-      </div>
-      <div className="temple-audience" aria-label="Số người xem đồng thời">
-        <Eye size={14} />
-        <span data-testid="audience-value">{audienceLabel}</span>
-        <small>
-          {state?.session.source === "mock" ? "Mô phỏng" : "TikTok LIVE"}
-        </small>
+      <div className="stream-comment-guide" aria-label="Hướng dẫn tương tác">
+        <kbd>!le</kbd>
+        <kbd>!nhang</kbd>
+        <kbd>!cau &lt;lời cầu&gt;</kbd>
       </div>
       {!client.connected && (
         <div className="scene-connection" role="status">
           Đang kết nối lại máy chủ…
         </div>
       )}
-      <div className="temple-bottom">
-        {notice && (
-          <p className="scene-notice" role="status">
-            {notice}
-          </p>
-        )}
+      <div className="temple-mid-notices">
         {latest &&
           (!announcementFresh || audienceMilestoneFresh) &&
           !new URLSearchParams(location.search).has("capture") && (
             <div className="offering-note">
-              <Flower2 size={22} />
+              <Flower2 size={18} />
               <div>
                 <strong>{latest.name}</strong>
                 <span
@@ -178,23 +191,26 @@ export function TempleView({
               role="status"
               key={announcement.id}
             >
-              <Flower2 size={19} />
+              <Flower2 size={17} />
               <span>{announcement.text}</span>
             </div>
           )}
+      </div>
+      <div className="temple-bottom">
+        {notice && (
+          <p className="scene-notice" role="status">
+            {notice}
+          </p>
+        )}
         {prayer && (
           <div className="public-prayer">
             <Heart size={15} />
             <p>
-              “{prayer.text}”<span>{prayer.userName}</span>
+              “{prayer.text}”<span>— {prayer.userName}</span>
             </p>
           </div>
         )}
         <StreamThanks state={state} />
-        <p className="stream-comment-guide">
-          Bình luận <b>!le</b> · <b>!nhang</b> · <b>!cau &lt;lời nguyện&gt;</b>
-          <span>Hoa sen dành cho quà tặng LIVE.</span>
-        </p>
         <div className="temple-progress">
           <div>
             <span>Cùng thắp sáng chánh điện</span>

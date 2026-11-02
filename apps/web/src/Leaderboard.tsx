@@ -47,11 +47,6 @@ export function StreamThanks({ state }: { state?: Snapshot }) {
         <span>{titles[kind]}</span>
       </div>
       <LeaderboardRows entries={entries ?? []} />
-      <small>
-        {state?.session.source === "tiktok"
-          ? "Phiên TikTok LIVE"
-          : "Phiên mô phỏng"}
-      </small>
     </section>
   );
 }

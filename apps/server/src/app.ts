@@ -195,6 +195,11 @@ export function createTempleApp(
     res.json(engine.snapshot(true));
   });
 
+  app.all("/api/session/reset", (_req, res) => {
+    engine.resetSessionProgress();
+    res.json({ ok: true, state: engine.snapshot(true) });
+  });
+
   app.get("/api/tiktok", (_req, res) => res.json(tiktokConfig()));
   app.put("/api/tiktok", (req, res) => {
     const input = tiktokConfigInputSchema.parse(req.body);

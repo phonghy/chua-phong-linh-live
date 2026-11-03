@@ -336,9 +336,8 @@ export function Admin() {
   }
 
   async function resetSession() {
-    if (!confirm("Bắt đầu phiên LIVE mới? Tiến trình 'Cùng thắp sáng chánh điện' sẽ được đưa về 0.")) return;
     await api("session/reset", {}, "POST");
-    setToast("Đã đặt lại tiến trình Thắp Sáng Chánh Điện về 0 cho phiên LIVE mới.");
+    setToast("Đã đặt lại điểm Cùng Thắp Sáng Chánh Điện về 0 cho phiên LIVE mới.");
   }
   useEffect(() => {
     if (!running) return;
@@ -700,7 +699,7 @@ export function Admin() {
                       type="button"
                       className="reset-session-btn"
                       disabled={!connected || busy}
-                      onClick={() => void resetSession()}
+                      onClick={() => void run(() => resetSession())}
                     >
                       <RotateCcw size={13} />
                       Bắt đầu phiên LIVE mới (Reset về 0)
@@ -728,6 +727,15 @@ export function Admin() {
                       </span>
                     </div>
                     <div className="live-status-actions">
+                      <button
+                        type="button"
+                        className="button secondary mini-status-btn"
+                        disabled={!connected || busy}
+                        onClick={() => void run(() => resetSession())}
+                        title="Đưa điểm Cùng thắp sáng chánh điện về 0 cho phiên live mới"
+                      >
+                        <RotateCcw size={13} /> Reset Thắp Sáng về 0
+                      </button>
                       {state?.connector.mode === "tiktok" ? (
                         <button
                           type="button"

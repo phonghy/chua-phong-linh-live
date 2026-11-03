@@ -827,6 +827,9 @@ export class Engine {
     this.commit(() => {
       this.state.progress = 0;
       this.state.milestones = [];
+      this.state.totals = { visits: 0, lotus: 0, incense: 0, bows: 0, likes: 0 };
+      this.state.session.gifts = {};
+      this.state.session.participation = {};
       this.state.settings.lanternBrightness = 0.45;
       this.announce(
         "notice",

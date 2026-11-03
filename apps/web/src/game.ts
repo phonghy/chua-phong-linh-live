@@ -231,8 +231,8 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
         this.lanterns.push(
           this.add
             .image(x, 840, "glow")
-            .setDisplaySize(240, 330)
-            .setAlpha(0.35)
+            .setDisplaySize(200, 270)
+            .setAlpha(0.2)
             .setDepth(3)
             .setBlendMode(Phaser.BlendModes.ADD),
         );
@@ -577,14 +577,25 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
         now = capture ? (state?.serverTime ?? Date.now()) + 6000 : Date.now();
       if (state) {
         const mode = state.settings.camera;
+        const cameraPresets: Record<string, { x: number; y: number; zoom: number }> = {
+          altar: { x: 540, y: 975, zoom: 2.2 },   // Cận Tam Bảo (Kim thân Phật & Lư hương nghi ngút)
+          honor: { x: 540, y: 1045, zoom: 2.24 }, // 3 Vị trí danh dự trước bàn thờ
+          aisle: { x: 540, y: 1140, zoom: 1.48 }, // Giữa hành lang (Lối đi chính giữa nhìn lên)
+          left: { x: 335, y: 1320, zoom: 1.85 },  // Khối Tả (Hàng Phật tử cánh trái)
+          right: { x: 745, y: 1320, zoom: 1.85 }, // Khối Hữu (Hàng Phật tử cánh phải)
+          close: { x: 540, y: 1045, zoom: 2.24 }, // Tương thích góc cận cũ
+          wide: { x: 540, y: 1010, zoom: 1.08 },  // Toàn cảnh đại điện (Thấy 200 người quỳ)
+        };
+
         if (capture || this.reducedMotion) {
           if (mode !== this.cameraMode) {
             this.cameraMode = mode;
-            this.cameras.main.setZoom(mode === "close" ? 2.2 : 1.08);
-            this.cameras.main.centerOn(540, mode === "close" ? 1045 : 1010);
+            const preset = cameraPresets[mode] ?? cameraPresets.wide;
+            this.cameras.main.setZoom(preset.zoom);
+            this.cameras.main.centerOn(preset.x, preset.y);
           }
         } else {
-          // Chu trình lia máy đa góc nhìn (Giữa, Đá Trái, Đá Phải × Xa, Trung, Cận sát tượng & người vái lạy)
+          // Chu trình lia máy đa góc nhìn hoặc điều chỉnh thủ công chính xác
           const ceremonyFocus = this.ceremonyBoostUntil > time ? 1 : 0;
           let targetZoom: number;
           let targetX: number;
@@ -592,13 +603,13 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
 
           if (state.settings.autoCamera) {
             const tourKeyframes = [
-              // 1. CẬN SÁT 3 NGƯỜI LÊN DÂNG LỄ & THẮP HƯƠNG (Tâm trước lư hương, zoom 2.24 cực rõ nét)
+              // 1. CẬN SÁT 3 NGƯỜI LÊN DÂNG LỄ & THẮP HƯƠNG (Tâm trước lư hương, zoom 2.24)
               { x: 540, y: 1045, zoom: 2.24 },
-              // 2. CẬN KHỐI PHẬT TỬ CÁNH TRÁI (Thấy rõ từng người quỳ lễ, tên bảng vàng sáng tỏ)
+              // 2. CẬN KHỐI PHẬT TỬ CÁNH TRÁI (Thấy rõ từng người quỳ lễ)
               { x: 335, y: 1320, zoom: 1.85 },
-              // 3. Toàn cảnh đại điện trang nghiêm ấm cúng (Thấy 200 người tề tựu hai bên)
+              // 3. Toàn cảnh đại điện trang nghiêm ấm cúng (Thấy 200 người)
               { x: 540, y: 1010, zoom: 1.08 },
-              // 4. CẬN KHỐI PHẬT TỬ CÁNH PHẢI (Thấy rõ từng người quỳ lễ, cảm giác thấy mình trong đó)
+              // 4. CẬN KHỐI PHẬT TỬ CÁNH PHẢI
               { x: 745, y: 1320, zoom: 1.85 },
               // 5. CẬN CAO kim thân Phật tổ & lư hương nghi ngút khói
               { x: 540, y: 975, zoom: 2.15 },
@@ -634,26 +645,22 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
               targetY = targetY * 0.3 + 1045 * 0.7;
               targetZoom = Math.max(targetZoom, 2.25);
             }
-          } else if (mode === "close") {
-            targetZoom =
-              2.2 +
-              ceremonyFocus * 0.12 +
-              Math.sin(visualTime * 0.00012) * 0.015;
-            targetX = 540 + Math.sin(visualTime * 0.00009) * 35;
-            targetY = 1045 + Math.cos(visualTime * 0.00008) * 15;
           } else {
-            targetZoom =
-              1.08 +
-              ceremonyFocus * 0.06 +
-              Math.sin(visualTime * 0.00011) * 0.01;
-            targetX = 540 + Math.sin(visualTime * 0.00009) * 20;
-            targetY =
-              1010 -
-              ceremonyFocus * 18 +
-              Math.cos(visualTime * 0.00008) * 10;
+            // Điều khiển góc máy chủ động theo lựa chọn của người vận hành
+            const preset = cameraPresets[mode] ?? cameraPresets.wide;
+            targetX = preset.x + Math.sin(visualTime * 0.00008) * 10;
+            targetY = preset.y + Math.cos(visualTime * 0.00007) * 6;
+            targetZoom = preset.zoom + Math.sin(visualTime * 0.0001) * 0.004;
+
+            if (ceremonyFocus) {
+              targetX = targetX * 0.3 + 540 * 0.7;
+              targetY = targetY * 0.3 + 1010 * 0.7;
+              targetZoom = Math.max(targetZoom, 2.2);
+            }
           }
 
-          const smooth = Math.min(1, Math.max(0.002, delta * 0.00045));
+          // Tốc độ lướt chuyển mượt mà: mất khoảng 2.5 - 3s để đến góc mới êm ái, điện ảnh
+          const smooth = 1 - Math.exp(-delta * 0.0018);
           this.camX += (targetX - this.camX) * smooth;
           this.camY += (targetY - this.camY) * smooth;
           this.camZoom += (targetZoom - this.camZoom) * smooth;
@@ -702,22 +709,40 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
           ? 0
           : Math.sin(visualTime * 0.0005) * 0.05;
         const lanternPulse = this.reducedMotion ? 0 : 0.03;
-        this.light.setAlpha(
-          (0.68 +
-            Math.min(0.18, state.milestones.length * 0.04) +
-            lightPulse +
-            glow) * ceremonyDim + ceremonySurge,
-        );
-        this.lanterns.forEach((l, i) =>
-          l.setAlpha(
-            (0.24 +
-              Math.min(0.3, state.milestones.length * 0.06) +
-              (this.reducedMotion
-                ? 0
-                : Math.sin(visualTime * 0.0012 + i) * lanternPulse) +
-              glow * 0.6) * ceremonyDim + ceremonySurge * 0.8,
-          ),
-        );
+        const userBrightness = typeof state.settings.lanternBrightness === "number"
+          ? state.settings.lanternBrightness
+          : 0.35;
+        const brightFactor = Math.max(0, userBrightness);
+
+        // Tỷ lệ ánh sáng đèn lồng và chánh điện:
+        // 0.0: Tắt hẳn bóng (chỉ còn tranh gốc)
+        // 0.15: Tối trầm mặc (ấm áp, tĩnh lặng)
+        // 0.35: Dịu nhẹ ấm cúng (chuẩn đề xuất mới, không chói)
+        // 0.60: Vừa phải
+        // 0.90: Sáng rõ
+        if (brightFactor <= 0.01) {
+          this.light.setAlpha(0);
+          this.lanterns.forEach((l) => l.setAlpha(0));
+        } else {
+          const lightScale = brightFactor / 0.35;
+          const baseLightAlpha =
+            (0.22 +
+              Math.min(0.08, state.milestones.length * 0.02) +
+              lightPulse +
+              glow * 0.3) * lightScale;
+          this.light.setAlpha(baseLightAlpha * ceremonyDim + ceremonySurge);
+
+          this.lanterns.forEach((l, i) => {
+            const baseLanternAlpha =
+              (0.07 +
+                Math.min(0.1, state.milestones.length * 0.02) +
+                (this.reducedMotion
+                  ? 0
+                  : Math.sin(visualTime * 0.0012 + i) * lanternPulse) +
+                glow * 0.2) * lightScale;
+            l.setAlpha(baseLanternAlpha * ceremonyDim + ceremonySurge * 0.6);
+          });
+        }
 
         // Làm sạch danh sách 3 vị trí danh dự trước bàn thờ nếu đã hết thời gian hành lễ
         this.honorSlots = this.honorSlots.filter((s) => s.until > now);

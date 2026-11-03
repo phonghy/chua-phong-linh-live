@@ -45,24 +45,37 @@ export const liveEventSchema = z.discriminatedUnion("type", [
   }),
 ]);
 export type LiveEvent = z.infer<typeof liveEventSchema>;
+export const cameraModeSchema = z.enum([
+  "wide",
+  "altar",
+  "honor",
+  "aisle",
+  "left",
+  "right",
+  "close",
+]);
+export type CameraMode = z.infer<typeof cameraModeSchema>;
+
 export const settingsSchema = z.object({
   cooldownSeconds: z.number().int().min(0).max(300),
-  camera: z.enum(["wide", "close"]),
+  camera: cameraModeSchema.default("wide"),
   autoCamera: z.boolean(),
   ambientVolume: z.number().min(0).max(1),
   ceremonyVolume: z.number().min(0).max(1),
   narratorEnabled: z.boolean().default(true),
   narratorVolume: z.number().min(0).max(1).default(0.85),
+  lanternBrightness: z.number().min(0).max(1).default(0.35),
 });
 export type Settings = z.infer<typeof settingsSchema>;
 export const defaultSettings: Settings = {
   cooldownSeconds: 10,
   camera: "wide",
-  autoCamera: true,
+  autoCamera: false,
   ambientVolume: 0.2,
   ceremonyVolume: 0.45,
   narratorEnabled: true,
   narratorVolume: 0.85,
+  lanternBrightness: 0.35,
 };
 export const tiktokUsernameSchema = z
   .string()

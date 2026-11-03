@@ -2126,3 +2126,198 @@ textarea::placeholder {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* BẢNG ĐIỀU KHIỂN GÓC CAMERA & ÁNH SÁNG CHÙA */
+.camera-segmented {
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.camera-segmented button {
+  padding: 5px 9px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.camera-segmented button.peek-btn {
+  background: #fdf5e2;
+  color: #8c5a12;
+  font-weight: 600;
+  border: 1px dashed #d8b068;
+}
+.camera-segmented button.peek-btn:hover {
+  background: #fce8c0;
+}
+
+.camera-lighting-console {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.console-section {
+  background: #fffcf7;
+  border: 1px solid #e7e2d6;
+  border-radius: 9px;
+  padding: 12px 14px;
+}
+.console-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+.console-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #253d2b;
+  font-size: 12px;
+}
+.console-badge {
+  background: #eef3ec;
+  color: #2d5537;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid #cfddcb;
+}
+.camera-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+  margin-bottom: 8px;
+}
+.cam-card-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  background: #fbfaf5;
+  border: 1px solid #e1dcce;
+  border-radius: 7px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+}
+.cam-card-btn:hover {
+  background: #f4efe4;
+  border-color: #c9bea8;
+  transform: translateY(-1px);
+}
+.cam-card-btn.active {
+  background: #eff6ed;
+  border-color: #3b6640;
+  box-shadow: 0 0 0 1px #3b6640, 0 2px 5px rgba(37,61,43,0.1);
+}
+.cam-icon {
+  font-size: 15px;
+  flex: 0 0 auto;
+}
+.cam-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.cam-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #253d2b;
+  line-height: 1.25;
+}
+.cam-card-btn.active .cam-name {
+  color: #1f5028;
+  font-weight: 700;
+}
+.cam-sub {
+  font-size: 9.5px;
+  color: #7d8b7d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.camera-action-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+.cam-quick-action {
+  padding: 8px 10px;
+  font-size: 10.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid #dcd5c4;
+  background: #f7f4ec;
+  color: #4b584b;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.18s ease;
+}
+.cam-quick-action:hover {
+  background: #ede7d8;
+  color: #203927;
+}
+.peek-wide-action {
+  background: #fff8e8;
+  border-color: #d6b36e;
+  color: #7d4d0a;
+}
+.peek-wide-action:hover {
+  background: #faeed0;
+}
+.cam-quick-action.active-tour {
+  background: #e8f3e5;
+  border-color: #2f6838;
+  color: #1d4d25;
+  box-shadow: 0 0 0 1px #2f6838;
+}
+
+/* Ánh sáng & Đèn lồng */
+.lighting-section {
+  border-top: 1px solid #e7e2d6;
+}
+.lighting-val-pill {
+  background: #fff3db;
+  color: #8b5505;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid #edd49a;
+}
+.console-sub-desc {
+  font-size: 10.5px;
+  color: #6d7b6d;
+  margin: 0 0 8px 0;
+  line-height: 1.35;
+}
+.lighting-preset-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+.lighting-preset-pills .pill-button {
+  padding: 4px 8px;
+  font-size: 10px;
+}
+.lighting-slider-box {
+  background: #f9f7f1;
+  border: 1px solid #e7e2d6;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9.5px;
+  color: #839183;
+  margin-bottom: 4px;
+}
+.light-slider {
+  width: 100%;
+  accent-color: #d97706;
+  cursor: pointer;
+  margin: 0;
+}

@@ -3,9 +3,11 @@ import {
   Activity,
   ArrowUpRight,
   Bell,
+  Camera,
   Check,
   ChevronRight,
   Clapperboard,
+  Sun,
   Copy,
   Flower2,
   Flame,
@@ -278,8 +280,58 @@ export function Admin() {
     await api("events", makeEvent("comment", name, { text: `!cau ${prayer}` }));
     setToast(`Đã phát lời nguyện của ${name} (Hiển thị & Giọng AI đọc).`);
   }
-  async function updateCamera(camera: Settings["camera"]) {
-    if (state) await api("settings", { ...state.settings, camera }, "PUT");
+  const cameraLabels: Record<string, string> = {
+    wide: "Toàn cảnh",
+    altar: "Cận Tam Bảo",
+    honor: "3 Vị trí danh dự",
+    aisle: "Giữa hành lang",
+    left: "Khối Tả (Trái)",
+    right: "Khối Hữu (Phải)",
+    close: "Cận cảnh",
+  };
+
+  function getLightingText(val: number): string {
+    if (val <= 0.05) return "Tắt hẳn bóng";
+    if (val <= 0.2) return "Tối trầm mặc";
+    if (val <= 0.45) return "Dịu nhẹ ấm cúng";
+    if (val <= 0.75) return "Vừa phải";
+    return "Sáng rõ";
+  }
+
+  const peekTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  async function updateCamera(camera: Settings["camera"], autoCamera = false) {
+    if (state) {
+      if (peekTimerRef.current) clearTimeout(peekTimerRef.current);
+      await api("settings", { ...state.settings, camera, autoCamera }, "PUT");
+      setToast(
+        autoCamera
+          ? "Đã bật chế độ Camera tự động lia đa góc mượt mà."
+          : `Đã chuyển camera sang góc: ${cameraLabels[camera] ?? camera} (chuyển mượt 3s).`
+      );
+    }
+  }
+
+  async function peekWideView() {
+    if (!state) return;
+    const prevCamera = state.settings.camera;
+    const prevAuto = state.settings.autoCamera;
+    if (peekTimerRef.current) clearTimeout(peekTimerRef.current);
+
+    await api("settings", { ...state.settings, camera: "wide", autoCamera: false }, "PUT");
+    setToast("Đang lướt ra Toàn cảnh trong 3s...");
+
+    peekTimerRef.current = setTimeout(async () => {
+      await api("settings", { ...state.settings, camera: prevCamera, autoCamera: prevAuto }, "PUT");
+      setToast(`Đã trở về góc camera trước đó (${cameraLabels[prevCamera] ?? prevCamera}).`);
+    }, 3800);
+  }
+
+  async function updateLighting(brightness: number) {
+    if (!state) return;
+    const clamped = Math.max(0, Math.min(1, Math.round(brightness * 100) / 100));
+    await api("settings", { ...state.settings, lanternBrightness: clamped }, "PUT");
+    setToast(`Đã chỉnh độ sáng đèn lồng: ${Math.round(clamped * 100)}% (${getLightingText(clamped)}).`);
   }
   useEffect(() => {
     if (!running) return;
@@ -469,24 +521,70 @@ export function Admin() {
                 <h2>Không gian chùa</h2>
                 <span className="subtle">9:16 · 1080 × 1920</span>
               </div>
-              <div className="segmented" aria-label="Góc nhìn">
+              <div className="segmented camera-segmented" aria-label="Góc nhìn">
                 <button
-                  className={
-                    state?.settings.camera === "wide" ? "selected" : ""
-                  }
+                  className={!state?.settings.autoCamera && state?.settings.camera === "wide" ? "selected" : ""}
                   disabled={!connected || busy}
-                  onClick={() => void run(() => updateCamera("wide"))}
+                  onClick={() => void run(() => updateCamera("wide", false))}
+                  title="Toàn cảnh đại điện (Thấy 200 người tề tựu hai bên)"
                 >
                   Toàn cảnh
                 </button>
                 <button
-                  className={
-                    state?.settings.camera === "close" ? "selected" : ""
-                  }
+                  className={!state?.settings.autoCamera && state?.settings.camera === "altar" ? "selected" : ""}
                   disabled={!connected || busy}
-                  onClick={() => void run(() => updateCamera("close"))}
+                  onClick={() => void run(() => updateCamera("altar", false))}
+                  title="Cận Tam Bảo (Kim thân Phật tổ & Lư hương)"
                 >
-                  Cận cảnh
+                  Cận Tam Bảo
+                </button>
+                <button
+                  className={!state?.settings.autoCamera && (state?.settings.camera === "honor" || state?.settings.camera === "close") ? "selected" : ""}
+                  disabled={!connected || busy}
+                  onClick={() => void run(() => updateCamera("honor", false))}
+                  title="3 Vị trí danh dự trước bàn thờ"
+                >
+                  3 Vị trí danh dự
+                </button>
+                <button
+                  className={!state?.settings.autoCamera && state?.settings.camera === "aisle" ? "selected" : ""}
+                  disabled={!connected || busy}
+                  onClick={() => void run(() => updateCamera("aisle", false))}
+                  title="Lối đi giữa nhìn lên chánh điện"
+                >
+                  Giữa hành lang
+                </button>
+                <button
+                  className={!state?.settings.autoCamera && state?.settings.camera === "left" ? "selected" : ""}
+                  disabled={!connected || busy}
+                  onClick={() => void run(() => updateCamera("left", false))}
+                  title="Cận khối Phật tử cánh trái"
+                >
+                  Khối Tả
+                </button>
+                <button
+                  className={!state?.settings.autoCamera && state?.settings.camera === "right" ? "selected" : ""}
+                  disabled={!connected || busy}
+                  onClick={() => void run(() => updateCamera("right", false))}
+                  title="Cận khối Phật tử cánh phải"
+                >
+                  Khối Hữu
+                </button>
+                <button
+                  className="peek-btn"
+                  disabled={!connected || busy}
+                  onClick={() => void peekWideView()}
+                  title="Đưa cam ra toàn cảnh trong 3s rồi tự trở lại góc cũ"
+                >
+                  Lướt 3s
+                </button>
+                <button
+                  className={state?.settings.autoCamera ? "selected" : ""}
+                  disabled={!connected || busy}
+                  onClick={() => void run(() => updateCamera(state?.settings.camera ?? "wide", true))}
+                  title="Tự động đảo góc tuần tự điện ảnh"
+                >
+                  Tự động lia
                 </button>
               </div>
             </div>
@@ -518,6 +616,167 @@ export function Admin() {
                   Lấy đường dẫn cho OBS
                   <ArrowUpRight size={15} />
                 </button>
+
+                {/* BẢNG ĐIỀU KHIỂN GÓC CAMERA & ÁNH SÁNG CHÙA */}
+                <div className="camera-lighting-console">
+                  <div className="console-section">
+                    <div className="console-header">
+                      <div className="console-title">
+                        <Camera size={14} />
+                        <strong>Góc Camera Chánh Điện</strong>
+                      </div>
+                      <span className="console-badge">Chuyển mượt 3s</span>
+                    </div>
+                    <div className="camera-btn-grid">
+                      <button
+                        type="button"
+                        className={`cam-card-btn ${!state?.settings.autoCamera && state?.settings.camera === "wide" ? "active" : ""}`}
+                        disabled={!connected || busy}
+                        onClick={() => void run(() => updateCamera("wide", false))}
+                      >
+                        <span className="cam-icon">🏛️</span>
+                        <div className="cam-info">
+                          <span className="cam-name">Toàn cảnh</span>
+                          <span className="cam-sub">Bao quát 200 người</span>
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        className={`cam-card-btn ${!state?.settings.autoCamera && state?.settings.camera === "altar" ? "active" : ""}`}
+                        disabled={!connected || busy}
+                        onClick={() => void run(() => updateCamera("altar", false))}
+                      >
+                        <span className="cam-icon">🪷</span>
+                        <div className="cam-info">
+                          <span className="cam-name">Cận Tam Bảo</span>
+                          <span className="cam-sub">Kim thân Phật & Lư hương</span>
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        className={`cam-card-btn ${!state?.settings.autoCamera && (state?.settings.camera === "honor" || state?.settings.camera === "close") ? "active" : ""}`}
+                        disabled={!connected || busy}
+                        onClick={() => void run(() => updateCamera("honor", false))}
+                      >
+                        <span className="cam-icon">🙏</span>
+                        <div className="cam-info">
+                          <span className="cam-name">3 Vị trí danh dự</span>
+                          <span className="cam-sub">Hàng trước dâng lễ</span>
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        className={`cam-card-btn ${!state?.settings.autoCamera && state?.settings.camera === "aisle" ? "active" : ""}`}
+                        disabled={!connected || busy}
+                        onClick={() => void run(() => updateCamera("aisle", false))}
+                      >
+                        <span className="cam-icon">🚶</span>
+                        <div className="cam-info">
+                          <span className="cam-name">Giữa hành lang</span>
+                          <span className="cam-sub">Lối đi giữa nhìn lên</span>
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        className={`cam-card-btn ${!state?.settings.autoCamera && state?.settings.camera === "left" ? "active" : ""}`}
+                        disabled={!connected || busy}
+                        onClick={() => void run(() => updateCamera("left", false))}
+                      >
+                        <span className="cam-icon">👈</span>
+                        <div className="cam-info">
+                          <span className="cam-name">Khối Tả</span>
+                          <span className="cam-sub">Phật tử cánh trái</span>
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        className={`cam-card-btn ${!state?.settings.autoCamera && state?.settings.camera === "right" ? "active" : ""}`}
+                        disabled={!connected || busy}
+                        onClick={() => void run(() => updateCamera("right", false))}
+                      >
+                        <span className="cam-icon">👉</span>
+                        <div className="cam-info">
+                          <span className="cam-name">Khối Hữu</span>
+                          <span className="cam-sub">Phật tử cánh phải</span>
+                        </div>
+                      </button>
+                    </div>
+                    <div className="camera-action-row">
+                      <button
+                        type="button"
+                        className="cam-quick-action peek-wide-action"
+                        disabled={!connected || busy}
+                        onClick={() => void peekWideView()}
+                        title="Đưa cam ra toàn cảnh trong 3s rồi tự trở lại góc cũ"
+                      >
+                        ⏱️ Lướt Toàn Cảnh (3s rồi trở lại)
+                      </button>
+                      <button
+                        type="button"
+                        className={`cam-quick-action ${state?.settings.autoCamera ? "active-tour" : ""}`}
+                        disabled={!connected || busy}
+                        onClick={() => void run(() => updateCamera(state?.settings.camera ?? "wide", !state?.settings.autoCamera))}
+                      >
+                        🔄 {state?.settings.autoCamera ? "Đang lia tự động (Bấm để dừng)" : "Bật Tự Động Lia Góc"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="console-section lighting-section">
+                    <div className="console-header">
+                      <div className="console-title">
+                        <Sun size={14} />
+                        <strong>Ánh Sáng Đèn Lồng & Đại Điện</strong>
+                      </div>
+                      <span className="lighting-val-pill">
+                        {Math.round((state?.settings.lanternBrightness ?? 0.35) * 100)}% · {getLightingText(state?.settings.lanternBrightness ?? 0.35)}
+                      </span>
+                    </div>
+                    <p className="console-sub-desc">
+                      Hạ bớt bóng đèn lồng giúp gian thờ trầm ấm, tĩnh lặng và không bị lóa tranh gỗ.
+                    </p>
+                    <div className="lighting-preset-pills">
+                      {[
+                        { val: 0.0, label: "🌑 Tắt bóng (0%)" },
+                        { val: 0.15, label: "🌙 Tối trầm (15%)" },
+                        { val: 0.35, label: "🕯️ Dịu nhẹ (35% - Chuẩn)" },
+                        { val: 0.6, label: "💡 Vừa phải (60%)" },
+                        { val: 0.9, label: "☀️ Sáng rõ (90%)" },
+                      ].map((p) => {
+                        const curVal = state?.settings.lanternBrightness ?? 0.35;
+                        const isMatch = Math.abs(curVal - p.val) < 0.04;
+                        return (
+                          <button
+                            key={p.val}
+                            type="button"
+                            className={`pill-button ${isMatch ? "active" : ""}`}
+                            disabled={!connected || busy}
+                            onClick={() => void run(() => updateLighting(p.val))}
+                          >
+                            {p.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="lighting-slider-box">
+                      <div className="slider-labels">
+                        <span>Tối trầm</span>
+                        <span>Dịu nhẹ (Chuẩn)</span>
+                        <span>Sáng rõ</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={state?.settings.lanternBrightness ?? 0.35}
+                        onChange={(e) => void updateLighting(Number(e.target.value))}
+                        disabled={!connected || busy}
+                        className="light-slider"
+                      />
+                    </div>
+                  </div>
+                </div>
               </section>
               <div className="operator-column">
                 <section className="panel simulator dispatch-station">
@@ -1224,7 +1483,23 @@ export function Admin() {
                     checked={draft.autoCamera}
                     onChange={(e) => setSetting("autoCamera", e.target.checked)}
                   />
-                  Camera tự động lia chuyển động mượt mà (Toàn cảnh & Cận cảnh)
+                  Camera tự động lia chuyển động mượt mà đa góc nhìn
+                </label>
+                <label>
+                  <span>
+                    <Sun size={16} /> Độ sáng đèn lồng & Đại điện{" "}
+                    <small>{Math.round((draft.lanternBrightness ?? 0.35) * 100)}% ({getLightingText(draft.lanternBrightness ?? 0.35)})</small>
+                  </span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={draft.lanternBrightness ?? 0.35}
+                    onChange={(e) =>
+                      setSetting("lanternBrightness", Number(e.target.value))
+                    }
+                  />
                 </label>
                 <div className="narrator-settings">
                   <label className="check-label">

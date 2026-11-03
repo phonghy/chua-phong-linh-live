@@ -123,6 +123,27 @@ export function createTempleApp(
   app.get("/api/health", (_req, res) => res.json({ ok: true, version: 1 }));
   app.get("/api/state", (_req, res) => res.json(engine.snapshot()));
   app.get("/api/admin", (_req, res) => res.json(engine.snapshot(true)));
+  app.post("/api/announcements", (req, res) => {
+    const text = String(req.body?.text ?? "").trim();
+    if (!text) {
+      res.status(400).json({ error: "Nội dung thông báo không được để trống." });
+      return;
+    }
+    engine.announceTemple(text);
+    res.json({ ok: true });
+  });
+  app.post("/api/ceremonies", (req, res) => {
+    const action = req.body?.action;
+    const name = String(req.body?.name ?? "Chùa Tâm An");
+    const intensity = Number(req.body?.intensity ?? 4);
+    const count = Number(req.body?.count ?? 1);
+    if (!["milestone", "bow", "incense", "lotus"].includes(action)) {
+      res.status(400).json({ error: "Nghi lễ không hợp lệ." });
+      return;
+    }
+    engine.triggerCeremony(action, name, intensity, count);
+    res.json({ ok: true });
+  });
   app.post("/api/events", (req, res) => {
     const event = liveEventSchema.parse(req.body);
     if (event.source !== "mock") {

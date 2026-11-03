@@ -22,6 +22,7 @@ import {
   Send,
   ShieldCheck,
   SlidersHorizontal,
+  Sparkles,
   Trash2,
   Users,
   Volume2,
@@ -127,8 +128,9 @@ export function Admin() {
     voice: string;
     detail: string;
   }>();
-  const [name, setName] = useState("Minh An"),
-    [prayer, setPrayer] = useState("Cầu cho gia đình bình an"),
+  const [name, setName] = useState("Tâm An"),
+    [prayer, setPrayer] = useState("Cầu cho gia đình bốn mùa bình an, tám tiết cát tường"),
+    [templeNotice, setTempleNotice] = useState("Đại lễ cầu an đang diễn ra, kính mời quý Phật tử cùng thành tâm hướng về Tam Bảo."),
     [giftId, setGiftId] = useState("mock-lotus"),
     [count, setCount] = useState(1),
     [audienceCount, setAudienceCount] = useState(1000);
@@ -246,6 +248,30 @@ export function Admin() {
           ? "Đã gửi lời nguyện vào hàng chờ duyệt."
           : `${actionLabels[action]} · Đã gửi`,
     );
+  }
+  async function sendTempleNotice() {
+    if (!templeNotice.trim()) return;
+    await api("announcements", { text: templeNotice });
+    setToast("Đã phát thông báo của Chùa lên LIVE (Ưu tiên phát thanh).");
+  }
+  async function triggerCeremonyEffect(action: "milestone" | "bow" | "incense" | "lotus", intensity = 4) {
+    await api("ceremonies", { action, name, intensity });
+    setToast(
+      action === "milestone"
+        ? "Đã kích hoạt Nghi lễ Thắp sáng Tam Bảo (Milestone)."
+        : action === "bow" && intensity === 4
+          ? "Đã kích hoạt Hào quang Phật đắc đạo (Đại thí chủ cúng dường)."
+          : `Đã kích hoạt nghi lễ ${actionLabels[action] ?? action}.`
+    );
+  }
+  async function sendGreeting() {
+    await api("events", makeEvent("join", name));
+    setToast(`Đã gửi lời chào đón ${name} vào chùa (Voice AI đọc chúc).`);
+  }
+  async function sendPrayerAction() {
+    if (!prayer.trim() || !name.trim()) return;
+    await api("events", makeEvent("comment", name, { text: `!cau ${prayer}` }));
+    setToast(`Đã phát lời nguyện của ${name} (Hiển thị & Giọng AI đọc).`);
   }
   async function updateCamera(camera: Settings["camera"]) {
     if (state) await api("settings", { ...state.settings, camera }, "PUT");
@@ -489,46 +515,162 @@ export function Admin() {
                 </button>
               </section>
               <div className="operator-column">
-                <section className="panel simulator">
+                <section className="panel simulator dispatch-station">
                   <div className="panel-heading">
-                    <h2>Tương tác thử</h2>
-                    <span className="tag">Cục bộ</span>
+                    <h2>Điều phối phòng LIVE & Nghi lễ Chùa</h2>
+                    <span className="tag primary">Bàn điều phối</span>
                   </div>
                   <p className="description">
-                    Gửi một tương tác để xem ngôi chùa chuyển động.
+                    Điều phối phát thanh chánh điện, phát lời thông báo của chùa, phát lời cầu nguyện và kích hoạt đại nghi lễ.
                   </p>
                   <fieldset disabled={!connected || busy}>
-                    <label className="field-label" htmlFor="viewer-name">
-                      Tên khách
-                    </label>
-                    <input
-                      id="viewer-name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      maxLength={60}
-                      placeholder="Nhập tên khách"
-                      required
-                    />
-                    <div className="action-grid">
-                      {(["bow", "incense"] as Action[]).map((action) => {
-                        const Icon = icons[action];
-                        return (
-                          <button
-                            key={action}
-                            className={`action-button ${action}`}
-                            disabled={!name.trim()}
-                            onClick={() => void run(() => sendAction(action))}
-                          >
-                            <Icon size={25} strokeWidth={1.5} />
-                            <strong>{actionLabels[action]}</strong>
-                            <code>{commands[action]}</code>
-                          </button>
-                        );
-                      })}
+                    {/* DANH XƯNG TƯƠNG TÁC */}
+                    <div className="dispatch-box">
+                      <div className="dispatch-header">
+                        <label className="field-label" htmlFor="viewer-name">
+                          Danh xưng phát biểu / Khách tương tác
+                        </label>
+                        <span className="subtle-hint">Mặc định: <strong>Tâm An</strong> (Chùa hoặc khách)</span>
+                      </div>
+                      <div className="name-input-row">
+                        <input
+                          id="viewer-name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          maxLength={60}
+                          placeholder="Nhập tên (ví dụ: Tâm An)"
+                          required
+                        />
+                        <div className="quick-names">
+                          {["Tâm An", "Minh An", "An Nhiên", "Đại Thí Chủ"].map((quickName) => (
+                            <button
+                              key={quickName}
+                              type="button"
+                              className={`pill-button ${name === quickName ? "active" : ""}`}
+                              onClick={() => setName(quickName)}
+                            >
+                              {quickName}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
+
+                    {/* THÔNG BÁO CỦA CHÙA (ƯU TIÊN CAO NHẤT) */}
+                    <div className="dispatch-box temple-notice-box">
+                      <div className="dispatch-header">
+                        <label className="field-label" htmlFor="temple-notice">
+                          <Volume2 size={15} /> Thông báo của Chùa (Ưu tiên phát thanh cao nhất)
+                        </label>
+                        <span className="badge-highlight">Ưu tiên 1</span>
+                      </div>
+                      <div className="dispatch-input-row">
+                        <textarea
+                          id="temple-notice"
+                          rows={2}
+                          value={templeNotice}
+                          onChange={(e) => setTempleNotice(e.target.value)}
+                          maxLength={300}
+                          placeholder="Nhập thông báo của chùa để Voice AI phát thanh chánh điện ngay lập tức..."
+                        />
+                        <button
+                          type="button"
+                          className="button primary dispatch-send-btn"
+                          disabled={!templeNotice.trim()}
+                          onClick={() => void run(sendTempleNotice)}
+                        >
+                          <Send size={15} /> Phát thông báo
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* LỜI CẦU NGUYỆN & LỜI CHÀO */}
+                    <div className="dispatch-box">
+                      <div className="dispatch-header">
+                        <label className="field-label" htmlFor="prayer-text">
+                          <Heart size={15} /> Lời cầu nguyện & Lời chúc (Hiện text + Voice AI đọc)
+                        </label>
+                        <button
+                          type="button"
+                          className="button text-link-btn"
+                          onClick={() => void run(sendGreeting)}
+                        >
+                          <Users size={14} /> Chào đón {name}
+                        </button>
+                      </div>
+                      <div className="dispatch-input-row">
+                        <textarea
+                          id="prayer-text"
+                          rows={2}
+                          value={prayer}
+                          onChange={(e) => setPrayer(e.target.value)}
+                          maxLength={240}
+                          placeholder="Nhập lời cầu nguyện hoặc chúc phúc..."
+                        />
+                        <button
+                          type="button"
+                          className="button secondary dispatch-send-btn"
+                          disabled={!prayer.trim() || !name.trim()}
+                          onClick={() => void run(sendPrayerAction)}
+                        >
+                          <Send size={15} /> Gửi & Đọc
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* BÀN PHÍM HIỆU ỨNG & ĐẠI NGHI LỄ CHÁNH ĐIỆN */}
+                    <div className="dispatch-box effects-box">
+                      <label className="field-label">
+                        <Sparkles size={15} /> Kích hoạt Hiệu ứng & Đại Nghi Lễ Chánh Điện
+                      </label>
+                      <div className="effect-grid">
+                        <button
+                          type="button"
+                          className="effect-btn ceremony-milestone-btn"
+                          onClick={() => void run(() => triggerCeremonyEffect("milestone", 3))}
+                        >
+                          <Flame size={20} />
+                          <div>
+                            <strong>Đại Lễ Thắp Đèn Tam Bảo</strong>
+                            <small>Hạ đèn 65% → Sóng quang minh → Bừng sáng + 110 sen vàng</small>
+                          </div>
+                        </button>
+                        <button
+                          type="button"
+                          className="effect-btn ceremony-halo-btn"
+                          onClick={() => void run(() => triggerCeremonyEffect("bow", 4))}
+                        >
+                          <Sparkles size={20} />
+                          <div>
+                            <strong>Hào Quang Phật Đắc Đạo</strong>
+                            <small>Đại hào quang xoay tròn + 200 người quỳ lạy + 130 sen vàng</small>
+                          </div>
+                        </button>
+                      </div>
+                      <div className="action-grid mini-actions">
+                        {(["bow", "incense", "lotus"] as Action[]).map((action) => {
+                          const Icon = icons[action];
+                          return (
+                            <button
+                              key={action}
+                              type="button"
+                              className={`action-button ${action}`}
+                              disabled={!name.trim()}
+                              onClick={() => void run(() => sendAction(action))}
+                            >
+                              <Icon size={20} strokeWidth={1.5} />
+                              <strong>${actionLabels[action]}</strong>
+                              <code>${commands[action]}</code>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* CÚNG DƯỜNG QUÀ TẶNG LIVE */}
                     <div className="gift-row">
                       <label>
-                        Quà tặng
+                        Cúng dường Quà tặng LIVE
                         <select
                           aria-label="Chọn quà tặng"
                           value={giftId}
@@ -536,7 +678,7 @@ export function Admin() {
                         >
                           {(state?.mappings ?? []).map((m) => (
                             <option key={m.giftId} value={m.giftId}>
-                              {m.name} · +{m.points}
+                              {m.name} · Cấp {m.intensity} (+{m.points} điểm)
                             </option>
                           ))}
                         </select>
@@ -553,6 +695,7 @@ export function Admin() {
                         />
                       </label>
                       <button
+                        type="button"
                         className="button secondary gift-send"
                         disabled={
                           !giftId ||
@@ -577,7 +720,7 @@ export function Admin() {
                                   final: true,
                                 }),
                               ),
-                            "Đã gửi quà mô phỏng.",
+                            "Đã gửi quà cúng dường.",
                           )
                         }
                       >
@@ -585,32 +728,11 @@ export function Admin() {
                         Gửi quà
                       </button>
                     </div>
-                    <label className="field-label" htmlFor="prayer-text">
-                      Lời cầu nguyện
-                    </label>
-                    <div className="prayer-input">
-                      <textarea
-                        id="prayer-text"
-                        rows={2}
-                        value={prayer}
-                        onChange={(e) => setPrayer(e.target.value)}
-                        maxLength={240}
-                      />
-                      <button
-                        aria-label="Gửi lời cầu nguyện"
-                        disabled={!prayer.trim() || !name.trim()}
-                        onClick={() => void run(() => sendAction("prayer"))}
-                      >
-                        <Send size={18} />
-                      </button>
-                    </div>
-                    <span className="field-hint">
-                      <ShieldCheck size={13} />
-                      Lời nguyện chỉ hiển thị sau khi được duyệt.
-                    </span>
+
+                    {/* MÔ PHỎNG NGƯỜI XEM & LƯỢT CHIA SẺ */}
                     <div className="audience-simulator">
                       <label htmlFor="mock-audience-count">
-                        Người xem đồng thời · mô phỏng
+                        Người xem đồng thời (Giả lập lượng khách vào chùa)
                       </label>
                       <div>
                         <input
@@ -626,6 +748,7 @@ export function Admin() {
                           }
                         />
                         <button
+                          type="button"
                           className="button secondary"
                           disabled={
                             !connected ||
@@ -652,6 +775,7 @@ export function Admin() {
                           Cập nhật người xem
                         </button>
                         <button
+                          type="button"
                           className="button secondary"
                           disabled={
                             !connected ||
@@ -669,30 +793,8 @@ export function Admin() {
                           Thử chia sẻ
                         </button>
                       </div>
-                      <small>
-                        {state?.connector.mode === "tiktok"
-                          ? "Chỉ là sự kiện mô phỏng; đã tắt khi TikTok LIVE đang kết nối."
-                          : "Số liệu và lượt chia sẻ mẫu chỉ dùng để xem thử hiệu ứng."}
-                      </small>
                     </div>
                   </fieldset>
-                  <div className="demo-control">
-                    <button
-                      className="button primary"
-                      disabled={
-                        !connected || state?.connector.mode === "tiktok"
-                      }
-                      onClick={() => setRunning(!running)}
-                    >
-                      {running ? <Pause size={17} /> : <Play size={17} />}
-                      {running ? "Dừng mô phỏng" : "Chạy mô phỏng"}
-                    </button>
-                    <span>
-                      {running
-                        ? "Khách mẫu đang ghé thăm chùa."
-                        : "Tự động tạo khách và tương tác mẫu."}
-                    </span>
-                  </div>
                 </section>
                 <section
                   className="community-strip"

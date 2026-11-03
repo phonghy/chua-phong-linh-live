@@ -6,6 +6,7 @@ import {
   type Action,
   type Announcement,
   type AdminSnapshot,
+  type Ceremony,
   type ConnectorStatus,
   type GiftMapping,
   type LiveEvent,
@@ -200,6 +201,32 @@ export class Engine {
             .map((p) => ({ ...p })),
         }
       : publicState;
+  }
+  announceTemple(text: string) {
+    const safeText = text.trim();
+    if (!safeText) return;
+    const finalText = safeText.startsWith("Chùa Tâm An")
+      ? safeText
+      : `Chùa Tâm An xin thông báo: ${safeText}`;
+    this.announce("prayer", finalText);
+  }
+  triggerCeremony(
+    action: Ceremony["action"],
+    name = "Chùa Tâm An",
+    intensity = 4,
+    count = 1,
+  ) {
+    if (action === "milestone") {
+      this.state.progress += 500;
+      this.ceremony(
+        "milestone",
+        `Cùng nhau thắp sáng · ${this.state.progress}`,
+        3,
+        count,
+      );
+    } else {
+      this.ceremony(action, name, intensity, count);
+    }
   }
   announcement(id: string): Announcement | undefined {
     if (
@@ -541,6 +568,7 @@ export class Engine {
               action = undefined;
               result = "empty-prayer";
             } else if (
+              event.source !== "mock" &&
               s.cooldowns[`viewer:${event.user.id}`] !== undefined &&
               now - s.cooldowns[`viewer:${event.user.id}`] <
                 s.settings.cooldownSeconds * 1000
@@ -559,6 +587,7 @@ export class Engine {
               });
               if (
                 event.source === s.session.source ||
+                event.source === "mock" ||
                 this.connector.mode === "mock"
               ) {
                 this.score(s.session.participation, event.user, 1);
@@ -588,7 +617,7 @@ export class Engine {
         s.streaks[key] = Math.max(event.count, s.streaks[key] ?? 0);
         if (
           event.final &&
-          (event.source === s.session.source || this.connector.mode === "mock") &&
+          (event.source === s.session.source || event.source === "mock" || this.connector.mode === "mock") &&
           !s.thankedStreaks[key]
         ) {
           s.thankedStreaks[key] = true;
@@ -621,7 +650,7 @@ export class Engine {
         this.ceremony("follow", event.user.name, 1);
         const key = JSON.stringify([event.source, event.user.id]);
         if (
-          (event.source === s.session.source || this.connector.mode === "mock") &&
+          (event.source === s.session.source || event.source === "mock" || this.connector.mode === "mock") &&
           (s.followThanks[key] === undefined ||
             now - s.followThanks[key] >= 30000)
         ) {
@@ -634,7 +663,7 @@ export class Engine {
       } else if (event.type === "join") {
         const key = JSON.stringify(["join", event.source, event.user.id]);
         if (
-          (event.source === s.session.source || this.connector.mode === "mock") &&
+          (event.source === s.session.source || event.source === "mock" || this.connector.mode === "mock") &&
           (s.followThanks[key] === undefined ||
             now - s.followThanks[key] >= 60000)
         ) {

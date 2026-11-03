@@ -1887,3 +1887,192 @@ textarea::placeholder {
 .approved-prayers small {
   color: #5f7054;
 }
+
+
+/* ==================== BÀN ĐIỀU PHỐI PHÒNG LIVE ==================== */
+.dispatch-box {
+  background: #fffcf7;
+  border: 1px solid #e7e2d6;
+  border-radius: 9px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.dispatch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.dispatch-header .field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-weight: 600;
+  color: #384d33;
+}
+.subtle-hint {
+  font-size: 11px;
+  color: #727a6c;
+}
+.name-input-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.name-input-row input {
+  flex: 1;
+  min-width: 150px;
+}
+.quick-names {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.pill-button {
+  background: #f1f3ea;
+  border: 1px solid #cbd4c2;
+  color: #485c43;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pill-button:hover {
+  background: #e3ebd8;
+  border-color: #9cb88e;
+}
+.pill-button.active {
+  background: #2b5138;
+  color: #ffffff;
+  border-color: #2b5138;
+  font-weight: 600;
+}
+.dispatch-input-row {
+  display: flex;
+  gap: 9px;
+  align-items: stretch;
+}
+.dispatch-input-row textarea {
+  flex: 1;
+  min-height: 52px;
+  resize: vertical;
+}
+.dispatch-send-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 115px;
+  font-weight: 600;
+}
+.temple-notice-box {
+  background: #fffcf0;
+  border: 1.5px solid #ebd9a2;
+}
+.badge-highlight {
+  background: #b48529;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+}
+.text-link-btn {
+  background: transparent;
+  border: none;
+  color: #3b6640;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.text-link-btn:hover {
+  background: #e9f0e6;
+  text-decoration: underline;
+}
+.effects-box {
+  background: #faf8f3;
+  border: 1px solid #ded6c5;
+}
+.effect-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.effect-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.effect-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+.effect-btn strong {
+  display: block;
+  font-size: 12.5px;
+  margin-bottom: 2px;
+}
+.effect-btn small {
+  display: block;
+  font-size: 10.5px;
+  line-height: 1.35;
+  opacity: 0.88;
+}
+.ceremony-milestone-btn {
+  background: linear-gradient(135deg, #fff9ee 0%, #ffeed2 100%);
+  border: 1.5px solid #d4a34b;
+  color: #72490b;
+}
+.ceremony-milestone-btn svg {
+  color: #d97706;
+  flex: 0 0 auto;
+}
+.ceremony-halo-btn {
+  background: linear-gradient(135deg, #fdf8ef 0%, #fae8cc 100%);
+  border: 1.5px solid #d99a2b;
+  color: #633c02;
+}
+.ceremony-halo-btn svg {
+  color: #ca8a04;
+  flex: 0 0 auto;
+}
+.mini-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.mini-actions .action-button {
+  padding: 8px;
+  min-height: 52px;
+}
+.mini-actions .action-button strong {
+  font-size: 11px;
+}
+.mini-actions .action-button code {
+  font-size: 9px;
+}
+
+@media (max-width: 600px) {
+  .effect-grid {
+    grid-template-columns: 1fr;
+  }
+}

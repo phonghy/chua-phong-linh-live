@@ -81,8 +81,46 @@ export function createTempleApp(
     engine.tick();
     for (const client of wss.clients) send(client);
   }, 2000);
+  const tiktokUsername = () =>
+    (
+      store.getConfig("tiktok.username") ??
+      process.env.TIKTOK_USERNAME ??
+      ""
+    ).replace(/^@/, "");
+  const tiktokConfig = (): TikTokConfig => ({
+    username: tiktokUsername(),
+    hasSignKey: !!store.getConfig("tiktok.signApiKey"),
+  });
+
   let connector: LiveConnector = new MockConnector((e) => engine.ingest(e));
   let switching = false;
+
+
+  const initUsername = tiktokUsername();
+  if (/^[\w.]{1,64}$/.test(initUsername)) {
+    const signApiKey =
+      store.getConfig("tiktok.signApiKey") ||
+      process.env.TIKTOK_SIGN_API_KEY ||
+      undefined;
+    connector = new TikTokConnector(
+      initUsername,
+      signApiKey,
+      (event) => {
+        const parsed = liveEventSchema.safeParse(event);
+        if (parsed.success) engine.ingest(parsed.data);
+      },
+      (status) => engine.setConnector(status),
+    );
+    engine.setConnector({
+      mode: "tiktok",
+      state: "connecting",
+      detail: `Đang kết nối @${initUsername}…`,
+      attempt: 0,
+    });
+    void connector.start();
+  }
+
+
   app.get("/api/narrator", async (_req, res) =>
     res.json(await narrator.status()),
   );
@@ -156,17 +194,7 @@ export function createTempleApp(
     engine.updateSettings(settingsSchema.parse(req.body));
     res.json(engine.snapshot(true));
   });
-  // The sign key is write-only: it never appears in any response or snapshot.
-  const tiktokUsername = () =>
-    (
-      store.getConfig("tiktok.username") ??
-      process.env.TIKTOK_USERNAME ??
-      ""
-    ).replace(/^@/, "");
-  const tiktokConfig = (): TikTokConfig => ({
-    username: tiktokUsername(),
-    hasSignKey: !!store.getConfig("tiktok.signApiKey"),
-  });
+
   app.get("/api/tiktok", (_req, res) => res.json(tiktokConfig()));
   app.put("/api/tiktok", (req, res) => {
     const input = tiktokConfigInputSchema.parse(req.body);

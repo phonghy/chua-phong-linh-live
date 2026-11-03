@@ -520,6 +520,57 @@ export function Admin() {
                     <h2>Điều phối phòng LIVE & Nghi lễ Chùa</h2>
                     <span className="tag primary">Bàn điều phối</span>
                   </div>
+                  <div className="live-status-bar">
+                    <div className="live-status-indicator">
+                      <span className={`status-pill ${state?.connector.mode === "tiktok" && state.connector.state === "connected" ? "connected" : "mock"}`}>
+                        <Radio size={13} />
+                        {state?.connector.mode === "tiktok"
+                          ? state.connector.state === "connected"
+                            ? `Đang nhận sự kiện TikTok LIVE (@${state.connector.detail?.replace(/^.*?@/, "") || tiktokUser || "LIVE"})`
+                            : "TikTok LIVE: Đang kết nối…"
+                          : running
+                            ? "Mô phỏng: Đang có khách ghé thăm"
+                            : "Mô phỏng: Tạm dừng"}
+                      </span>
+                    </div>
+                    <div className="live-status-actions">
+                      {state?.connector.mode === "tiktok" ? (
+                        <button
+                          type="button"
+                          className="button secondary mini-status-btn"
+                          disabled={busy}
+                          onClick={() => void run(() => api("connector", { mode: "mock" }), "Đã chuyển về mô phỏng.")}
+                        >
+                          Chuyển sang Mô phỏng
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            className={`button ${running ? "secondary" : "primary"} mini-status-btn`}
+                            disabled={!connected || busy}
+                            onClick={() => setRunning(!running)}
+                          >
+                            {running ? <Pause size={13} /> : <Play size={13} />}
+                            {running ? "Dừng mô phỏng" : "Chạy mô phỏng (Khách tự động)"}
+                          </button>
+                          {tiktokUser && (
+                            <button
+                              type="button"
+                              className="button secondary mini-status-btn"
+                              disabled={!connected || busy}
+                              onClick={() => {
+                                setRunning(false);
+                                void run(() => api("connector", { mode: "tiktok" }));
+                              }}
+                            >
+                              <Wifi size={13} /> Kết nối @{tiktokUser}
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
                   <p className="description">
                     Điều phối phát thanh chánh điện, phát lời thông báo của chùa, phát lời cầu nguyện và kích hoạt đại nghi lễ.
                   </p>

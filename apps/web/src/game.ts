@@ -22,11 +22,13 @@ interface VisitorArt {
   sprite: Phaser.GameObjects.Image;
   shadow: Phaser.GameObjects.Ellipse;
   aura: Phaser.GameObjects.Image;
+  halo: Phaser.GameObjects.Image;
   label: Phaser.GameObjects.Text;
   curX: number;
   curY: number;
   curScale: number;
   initialized: boolean;
+  wishTime?: number;
 }
 interface AltarHonorSlot {
   visitorId: string;
@@ -36,6 +38,7 @@ interface AltarHonorSlot {
   until: number;
   isGift: boolean;
   lastSmokeAt: number;
+  intensity?: number;
 }
 interface Particle {
   image: Phaser.GameObjects.Image;
@@ -47,6 +50,8 @@ interface Particle {
   vy: number;
   kind: string;
   size: number;
+  targetX?: number;
+  targetY?: number;
 }
 
 const MAX_ALTAR_HONOR = 3;
@@ -100,6 +105,7 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
     private hasSnapshot = false;
     private sessionId = "";
     private communalBowUntil = 0;
+    private milestoneCeremonyUntil = 0;
     private audienceStartedAt = 0;
     private audienceEndsAt = 0;
     private audienceLift = 0;
@@ -151,6 +157,66 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
       petal.fillEllipse(10, 13, 5, 18);
       petal.generateTexture("petal", 24, 32);
       petal.destroy();
+
+      // Golden Petal (Cánh sen vàng đại lễ)
+      const goldPetal = this.add.graphics();
+      goldPetal.fillStyle(0xffdf58);
+      goldPetal.fillEllipse(12, 16, 16, 28);
+      goldPetal.fillStyle(0xfffbe6);
+      goldPetal.fillEllipse(10, 13, 6, 18);
+      goldPetal.generateTexture("gold_petal", 24, 32);
+      goldPetal.destroy();
+
+      // Halo Canvas - Vòng Hào Quang Phật Đắc Đạo (Divine Buddha Halo)
+      const haloCanvas = document.createElement("canvas");
+      haloCanvas.width = 256;
+      haloCanvas.height = 256;
+      const hCtx = haloCanvas.getContext("2d")!;
+      const hGrad = hCtx.createRadialGradient(128, 128, 8, 128, 128, 128);
+      hGrad.addColorStop(0, "rgba(255, 248, 200, 0.95)");
+      hGrad.addColorStop(0.35, "rgba(255, 215, 80, 0.65)");
+      hGrad.addColorStop(0.68, "rgba(255, 160, 40, 0.35)");
+      hGrad.addColorStop(0.9, "rgba(255, 120, 20, 0.12)");
+      hGrad.addColorStop(1, "rgba(255, 100, 0, 0)");
+      hCtx.fillStyle = hGrad;
+      hCtx.fillRect(0, 0, 256, 256);
+      hCtx.save();
+      hCtx.translate(128, 128);
+      hCtx.strokeStyle = "rgba(255, 240, 160, 0.45)";
+      hCtx.lineWidth = 3;
+      for (let r = 0; r < 24; r++) {
+        hCtx.rotate((Math.PI * 2) / 24);
+        hCtx.beginPath();
+        hCtx.moveTo(0, r % 2 === 0 ? 32 : 48);
+        hCtx.lineTo(0, r % 2 === 0 ? 122 : 105);
+        hCtx.stroke();
+      }
+      hCtx.strokeStyle = "rgba(255, 255, 220, 0.85)";
+      hCtx.lineWidth = 4;
+      hCtx.beginPath();
+      hCtx.arc(0, 0, 52, 0, Math.PI * 2);
+      hCtx.stroke();
+      hCtx.strokeStyle = "rgba(255, 215, 100, 0.7)";
+      hCtx.lineWidth = 2.5;
+      hCtx.beginPath();
+      hCtx.arc(0, 0, 96, 0, Math.PI * 2);
+      hCtx.stroke();
+      hCtx.restore();
+      this.textures.addCanvas("halo", haloCanvas);
+
+      // Wish Firefly (Hạt nguyện ước hoàng kim bay lên bàn thờ khi bình luận)
+      const wishCanvas = document.createElement("canvas");
+      wishCanvas.width = 64;
+      wishCanvas.height = 64;
+      const wCtx = wishCanvas.getContext("2d")!;
+      const wGrad = wCtx.createRadialGradient(32, 32, 2, 32, 32, 32);
+      wGrad.addColorStop(0, "rgba(255, 255, 230, 1)");
+      wGrad.addColorStop(0.35, "rgba(255, 220, 100, 0.85)");
+      wGrad.addColorStop(0.7, "rgba(255, 170, 40, 0.35)");
+      wGrad.addColorStop(1, "rgba(255, 140, 0, 0)");
+      wCtx.fillStyle = wGrad;
+      wCtx.fillRect(0, 0, 64, 64);
+      this.textures.addCanvas("wish_firefly", wishCanvas);
       this.light = this.add
         .image(540, 760, "glow")
         .setDisplaySize(640, 780)
@@ -170,7 +236,7 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
             .setDepth(3)
             .setBlendMode(Phaser.BlendModes.ADD),
         );
-      for (let i = 0; i < 180; i++)
+      for (let i = 0; i < 260; i++)
         this.particles.push({
           image: this.add.image(0, 0, "spark").setVisible(false).setDepth(2500),
           start: 0,
@@ -196,7 +262,7 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
       parent.dataset.ready = "true";
       this.sync();
     }
-    private assignHonorSlot(v: Visitor, now: number) {
+    private assignHonorSlot(v: Visitor, now: number, intensity = 1) {
       if (capture || !v.action || v.actionAt <= 0) return;
       const prevAt = this.processedActions.get(v.id) ?? 0;
       if (v.actionAt <= prevAt) return;
@@ -227,6 +293,7 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
           until: now + duration,
           isGift,
           lastSmokeAt: 0,
+          intensity,
         });
       } else if (isGift) {
         // Nếu người xem tặng quà mà cả 3 vị trí đã đầy, ưu tiên nhường chỗ của khách thường hoặc người đứng lâu nhất
@@ -291,6 +358,7 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
           art.sprite.destroy();
           art.shadow.destroy();
           art.aura.destroy();
+          art.halo?.destroy();
           art.label.destroy();
           this.visitors.delete(id);
           this.processedActions.delete(id);
@@ -310,6 +378,12 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
               .setDisplaySize(165, 68)
               .setAlpha(0)
               .setBlendMode(Phaser.BlendModes.ADD),
+            halo: this.add
+              .image(0, 0, "halo")
+              .setDisplaySize(160, 160)
+              .setAlpha(0)
+              .setVisible(false)
+              .setBlendMode(Phaser.BlendModes.ADD),
             label: this.add
               .text(0, 0, v.name, {
                 fontFamily: '"Be Vietnam Pro"',
@@ -328,7 +402,10 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
             this.processedActions.set(v.id, v.actionAt);
           }
         }
-        this.assignHonorSlot(v, now);
+        const recentCeremony = state.ceremonies.find(
+          (c) => c.name === v.name && Math.abs(now - c.at) < 6000,
+        );
+        this.assignHonorSlot(v, now, recentCeremony?.intensity ?? 1);
       }
       if (!this.hasSnapshot || state.session.id !== this.sessionId) {
         this.hasSnapshot = true;
@@ -341,9 +418,22 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
             if (!capture && Math.abs(state.serverTime - c.at) < 2500) {
               if (c.action === "audience-milestone")
                 this.celebrateAudience(c.count, c.intensity);
-              if (c.intensity >= 2 || c.action === "milestone")
+              if (c.action === "milestone") {
+                this.ceremonyBoostUntil = this.time.now + 6000;
+                this.milestoneCeremonyUntil = this.time.now + 6000;
+              } else if (c.intensity >= 4) {
+                // Tier 4: Đại Thí Chủ - Tất cả đạo tràng đồng loạt quỳ lạy và zoom cận
+                this.ceremonyBoostUntil = this.time.now + 6500;
+                this.communalBowUntil = Date.now() + 6500;
+                if (!this.reducedMotion) this.cameras.main.shake(380, 0.005);
+              } else if (c.intensity >= 2) {
                 this.ceremonyBoostUntil = this.time.now + 5500;
-              this.burst(c.action, c.intensity, c.count);
+              }
+              if (c.action === "comment") {
+                this.celebrateComment(c.name);
+              } else {
+                this.burst(c.action, c.intensity, c.count);
+              }
             }
           }
       }
@@ -351,6 +441,8 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
         this.seen = new Set(state.ceremonies.map((c) => c.id));
     }
     private burst(action: Ceremony["action"], intensity: number, count = 0) {
+      const isTier4 = intensity >= 4;
+      const isTier3 = intensity === 3;
       const amount =
         action === "audience-milestone"
           ? Math.min(
@@ -359,44 +451,85 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
                 (this.reducedMotion ? 0.3 : 1),
             )
           : action === "milestone"
-            ? 90
-            : action === "like"
-              ? 8
-              : action === "share"
-                ? 16
-                : 20 * intensity;
+            ? 110
+            : isTier4
+              ? 130
+              : isTier3
+                ? 70
+                : action === "like"
+                  ? 8
+                  : action === "share"
+                    ? 18
+                    : 22 * intensity;
       let spawned = 0;
       for (const p of this.particles) {
         if (p.duration > 0) continue;
         const i = spawned++,
           angle = i * 2.399963 + this.time.now * 0.0001;
         p.kind =
-          action === "lotus" ||
-          action === "milestone" ||
-          action === "audience-milestone"
-            ? "petal"
-            : action === "incense"
-              ? "smoke"
-              : "spark";
+          isTier4 || isTier3 || action === "milestone"
+            ? i % 3 === 0 ? "gold_petal" : "spark"
+            : action === "lotus" || action === "audience-milestone"
+              ? "petal"
+              : action === "incense"
+                ? "smoke"
+                : "spark";
         p.start = this.time.now;
-        p.duration = 3500 + (i % 5) * 350;
-        p.x = 540 + Math.sin(angle) * 170;
+        p.duration = (isTier4 ? 4500 : 3500) + (i % 5) * 350;
+        p.x = 540 + Math.sin(angle) * (isTier4 ? 260 : 170);
         p.y = 1130 + (i % 4) * 45;
-        p.vx = Math.sin(angle) * 65;
-        p.vy = -(70 + (i % 7) * 20);
-        p.size = p.kind === "petal" ? 18 : p.kind === "smoke" ? 100 : 8;
+        p.vx = Math.sin(angle) * (isTier4 ? 90 : 65);
+        p.vy = -(isTier4 ? 95 : 70 + (i % 7) * 20);
+        p.size =
+          p.kind === "gold_petal"
+            ? isTier4 ? 26 : 21
+            : p.kind === "petal"
+              ? 18
+              : p.kind === "smoke"
+                ? 100
+                : 9;
         p.image
           .setTexture(
-            p.kind === "petal"
-              ? "petal"
-              : p.kind === "smoke"
-                ? "glow"
-                : "spark",
+            p.kind === "gold_petal"
+              ? "gold_petal"
+              : p.kind === "petal"
+                ? "petal"
+                : p.kind === "smoke"
+                  ? "glow"
+                  : "spark",
           )
           .setVisible(true)
-          .setTint(p.kind === "smoke" ? 0xbcb4a4 : 0xffffff)
-          .setAlpha(0.8);
+          .setTint(p.kind === "smoke" ? 0xbcb4a4 : isTier4 ? 0xffea70 : 0xffffff)
+          .setAlpha(0.85);
         if (spawned >= amount) break;
+      }
+    }
+    private celebrateComment(userName: string) {
+      const art = Array.from(this.visitors.values()).find((a) => a.label.text === userName);
+      if (art) {
+        art.wishTime = this.time.now;
+        this.spawnWishSpark(art.curX, art.curY);
+      }
+    }
+    private spawnWishSpark(x: number, y: number) {
+      for (const p of this.particles) {
+        if (p.duration > 0) continue;
+        p.kind = "wish";
+        p.start = this.time.now;
+        p.duration = 3200;
+        p.x = x;
+        p.y = y - 30;
+        p.targetX = 540;
+        p.targetY = 1020;
+        p.vx = (540 - x) / 3.2;
+        p.vy = (1020 - (y - 30)) / 3.2;
+        p.size = 20;
+        p.image
+          .setTexture("wish_firefly")
+          .setVisible(true)
+          .setTint(0xffea9f)
+          .setAlpha(0.9);
+        break;
       }
     }
     private celebrateAudience(count: number, intensity: number) {
@@ -447,8 +580,8 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
         if (capture || this.reducedMotion) {
           if (mode !== this.cameraMode) {
             this.cameraMode = mode;
-            this.cameras.main.setZoom(mode === "close" ? 1.78 : 1.01);
-            this.cameras.main.centerOn(540, mode === "close" ? 895 : 960);
+            this.cameras.main.setZoom(mode === "close" ? 2.2 : 1.08);
+            this.cameras.main.centerOn(540, mode === "close" ? 1045 : 1010);
           }
         } else {
           // Chu trình lia máy đa góc nhìn (Giữa, Đá Trái, Đá Phải × Xa, Trung, Cận sát tượng & người vái lạy)
@@ -459,16 +592,20 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
 
           if (state.settings.autoCamera) {
             const tourKeyframes = [
-              { x: 540, y: 960, zoom: 1.01 }, // 1. Giữa · Xa (Toàn cảnh đại điện)
-              { x: 435, y: 960, zoom: 1.18 }, // 2. Đá Trái · Trung (Dãy phật tử & hàng cột trái)
-              { x: 540, y: 885, zoom: 1.82 }, // 3. Giữa · Cận sát tượng Phật & những người đang vái lạy
-              { x: 645, y: 960, zoom: 1.18 }, // 4. Đá Phải · Trung (Dãy phật tử & hàng cột phải)
-              { x: 540, y: 1060, zoom: 1.16 }, // 5. Giữa · Trung (Hành lang giữa & hai bên lễ đường)
-              { x: 470, y: 920, zoom: 1.72 }, // 6. Đá Trái · Cận sát người vái lạy & bàn thờ bên trái
-              { x: 610, y: 920, zoom: 1.72 }, // 7. Đá Phải · Cận sát người vái lạy & bàn thờ bên phải
-              { x: 540, y: 960, zoom: 1.01 }, // 8. Giữa · Xa (Trở về toàn cảnh tĩnh tại)
+              // 1. CẬN SÁT 3 NGƯỜI LÊN DÂNG LỄ & THẮP HƯƠNG (Tâm trước lư hương, zoom 2.24 cực rõ nét)
+              { x: 540, y: 1045, zoom: 2.24 },
+              // 2. CẬN KHỐI PHẬT TỬ CÁNH TRÁI (Thấy rõ từng người quỳ lễ, tên bảng vàng sáng tỏ)
+              { x: 335, y: 1320, zoom: 1.85 },
+              // 3. Toàn cảnh đại điện trang nghiêm ấm cúng (Thấy 200 người tề tựu hai bên)
+              { x: 540, y: 1010, zoom: 1.08 },
+              // 4. CẬN KHỐI PHẬT TỬ CÁNH PHẢI (Thấy rõ từng người quỳ lễ, cảm giác thấy mình trong đó)
+              { x: 745, y: 1320, zoom: 1.85 },
+              // 5. CẬN CAO kim thân Phật tổ & lư hương nghi ngút khói
+              { x: 540, y: 975, zoom: 2.15 },
+              // 6. Lối đi giữa nhìn lên hàng danh dự và chánh điện
+              { x: 540, y: 1140, zoom: 1.48 },
             ];
-            const stageDuration = 13500;
+            const stageDuration = 12500;
             const rawStage =
               (visualTime / stageDuration) % tourKeyframes.length;
             const idx = Math.floor(rawStage);
@@ -484,33 +621,39 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
             targetY =
               cur.y +
               (nxt.y - cur.y) * blend -
-              ceremonyFocus * 20 +
+              ceremonyFocus * 30 +
               Math.cos(visualTime * 0.00008) * 6;
             targetZoom =
               cur.zoom +
               (nxt.zoom - cur.zoom) * blend +
-              ceremonyFocus * 0.08 +
+              ceremonyFocus * 0.12 +
               Math.sin(visualTime * 0.00012) * 0.008;
+
+            if (ceremonyFocus) {
+              targetX = targetX * 0.3 + 540 * 0.7;
+              targetY = targetY * 0.3 + 1045 * 0.7;
+              targetZoom = Math.max(targetZoom, 2.25);
+            }
           } else if (mode === "close") {
             targetZoom =
-              1.78 +
-              ceremonyFocus * 0.08 +
+              2.2 +
+              ceremonyFocus * 0.12 +
               Math.sin(visualTime * 0.00012) * 0.015;
-            targetX = 540 + Math.sin(visualTime * 0.00009) * 45;
-            targetY = 895 + Math.cos(visualTime * 0.00008) * 18;
+            targetX = 540 + Math.sin(visualTime * 0.00009) * 35;
+            targetY = 1045 + Math.cos(visualTime * 0.00008) * 15;
           } else {
             targetZoom =
-              1.02 +
-              ceremonyFocus * 0.04 +
+              1.08 +
+              ceremonyFocus * 0.06 +
               Math.sin(visualTime * 0.00011) * 0.01;
             targetX = 540 + Math.sin(visualTime * 0.00009) * 20;
             targetY =
-              960 -
+              1010 -
               ceremonyFocus * 18 +
               Math.cos(visualTime * 0.00008) * 10;
           }
 
-          const smooth = Math.min(1, Math.max(0.004, delta * 0.00075));
+          const smooth = Math.min(1, Math.max(0.002, delta * 0.00045));
           this.camX += (targetX - this.camX) * smooth;
           this.camY += (targetY - this.camY) * smooth;
           this.camZoom += (targetZoom - this.camZoom) * smooth;
@@ -540,24 +683,39 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
               )
             : 0;
         const glow = Math.max(0, audienceProgress) * this.audienceLift;
+        let ceremonyDim = 1.0;
+        let ceremonySurge = 0.0;
+        if (this.milestoneCeremonyUntil > this.time.now) {
+          const mProgress = 1 - (this.milestoneCeremonyUntil - this.time.now) / 6000;
+          if (mProgress < 0.22) {
+            ceremonyDim = 1 - Math.sin((mProgress / 0.22) * Math.PI * 0.5) * 0.65;
+          } else if (mProgress < 0.48) {
+            const wave = (mProgress - 0.22) / 0.26;
+            ceremonyDim = 0.35 + wave * 0.65;
+            ceremonySurge = wave * 0.25;
+          } else {
+            const fade = 1 - (mProgress - 0.48) / 0.52;
+            ceremonySurge = fade * 0.45;
+          }
+        }
         const lightPulse = this.reducedMotion
           ? 0
           : Math.sin(visualTime * 0.0005) * 0.05;
         const lanternPulse = this.reducedMotion ? 0 : 0.03;
         this.light.setAlpha(
-          0.68 +
+          (0.68 +
             Math.min(0.18, state.milestones.length * 0.04) +
             lightPulse +
-            glow,
+            glow) * ceremonyDim + ceremonySurge,
         );
         this.lanterns.forEach((l, i) =>
           l.setAlpha(
-            0.24 +
+            (0.24 +
               Math.min(0.3, state.milestones.length * 0.06) +
               (this.reducedMotion
                 ? 0
                 : Math.sin(visualTime * 0.0012 + i) * lanternPulse) +
-              glow * 0.6,
+              glow * 0.6) * ceremonyDim + ceremonySurge * 0.8,
           ),
         );
 
@@ -569,17 +727,17 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
           if (!art) continue;
           // Xếp 2 bên (trái/phải), mỗi hàng 8 người dàn ra 2 bên, giữ nguyên hành lang giữa, bỏ hàng đầu tiên (bắt đầu từ y=1196) và kéo dài 10 hàng xuống sát cuối màn hình (y=1790)
           const side = v.slot % 2; // 0: Bên trái, 1: Bên phải
-          const sideIdx = Math.floor(v.slot / 2);
-          const row = Math.min(9, Math.floor(sideIdx / 8)); // 0..9 (10 hàng kéo xuống gần cuối màn hình)
-          const col = sideIdx % 8; // 0..7 (8 người mỗi hàng, col 0 sát hành lang giữa nhất)
-          const aisleHalf = 76 + row * 5;
-          const colGap = 46 + row * 1.1;
+          const sideIdx = Math.floor(v.slot / 2); // 0..99 (mỗi bên 100 người)
+          const row = Math.min(9, Math.floor(sideIdx / 10)); // 0..9 (10 hàng kéo dài xuống sát cuối màn hình)
+          const col = sideIdx % 10; // 0..9 (10 người mỗi hàng, mở rộng ra 2 bên)
+          const aisleHalf = 76 + row * 5; // Giữ nguyên lối đi ở giữa
+          const colGap = 38 + row * 0.4;
           const baseX =
             side === 0
               ? 540 - aisleHalf - col * colGap
               : 540 + aisleHalf + col * colGap;
           const baseY = 1196 + row * 66;
-          const baseScale = 0.58 + row * 0.032;
+          const baseScale = 0.54 + row * 0.034;
           const aisleX = side === 0 ? 524 : 556;
 
           const honorSlot = capture
@@ -684,14 +842,29 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
             .setAlpha(0.32 * alpha)
             .setDepth(drawY - 1);
 
+          const isCommenting = art.wishTime && (now - art.wishTime < 3500);
           if (honorSlot) {
             art.aura
               .setPosition(drawX, art.curY + 2)
-              .setDisplaySize(175 * drawScale, 72 * drawScale)
+              .setDisplaySize(185 * drawScale, 75 * drawScale)
               .setAlpha(
-                (0.42 + Math.sin(visualTime * 0.003) * 0.1) * alpha,
+                (0.48 + Math.sin(visualTime * 0.003) * 0.12) * alpha,
               )
               .setDepth(drawY - 2);
+            if (honorSlot.intensity && honorSlot.intensity >= 3) {
+              const isGrand = honorSlot.intensity >= 4;
+              const haloSize = (isGrand ? 250 : 175) * drawScale;
+              art.halo
+                .setPosition(drawX, art.curY - 76 * drawScale)
+                .setDisplaySize(haloSize, haloSize)
+                .setRotation(visualTime * (isGrand ? 0.0022 : 0.0012))
+                .setAlpha((isGrand ? 0.92 : 0.68) * alpha)
+                .setTint(isGrand ? 0xffdf70 : 0xfff0aa)
+                .setDepth(drawY - 1)
+                .setVisible(true);
+            } else {
+              art.halo.setAlpha(0).setVisible(false);
+            }
             if (!isWalking && time - honorSlot.lastSmokeAt > 1300) {
               honorSlot.lastSmokeAt = time;
               this.spawnAltarOfferingEffect(
@@ -700,19 +873,33 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
                 honorSlot.action,
               );
             }
-            const honorLabel = `${v.name} · ${HONOR_ACTION_TEXT[honorSlot.action]}`;
+            const isGrand = (honorSlot.intensity ?? 1) >= 4;
+            const honorLabel = isGrand
+              ? `✦ ${v.name} · ĐẠI THÍ CHỦ ✦`
+              : `${v.name} · ${HONOR_ACTION_TEXT[honorSlot.action]}`;
             if (art.label.text !== honorLabel) {
               art.label.setText(honorLabel);
               art.label.setStyle({
                 fontFamily: '"Be Vietnam Pro"',
-                fontSize: "20px",
-                color: "#ffe8a3",
-                backgroundColor: "#3b2310f2",
-                padding: { left: 9, right: 9, top: 4, bottom: 4 },
+                fontSize: isGrand ? "22px" : "20px",
+                color: isGrand ? "#fff3a8" : "#ffe8a3",
+                backgroundColor: isGrand ? "#4a2c0dfa" : "#3b2310f2",
+                padding: { left: 10, right: 10, top: 5, bottom: 5 },
               });
+            }
+          } else if (isCommenting) {
+            art.aura
+              .setPosition(drawX, art.curY + 2)
+              .setDisplaySize(145 * drawScale, 58 * drawScale)
+              .setAlpha(0.68 * (1 - (now - art.wishTime!) / 3500) * alpha)
+              .setDepth(drawY - 2);
+            art.halo.setAlpha(0).setVisible(false);
+            if (art.label.text !== v.name) {
+              art.label.setText(v.name);
             }
           } else {
             art.aura.setAlpha(0);
+            art.halo.setAlpha(0).setVisible(false);
             if (art.label.text !== v.name) {
               art.label.setText(v.name);
               art.label.setStyle({
@@ -745,17 +932,26 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
           continue;
         }
         active++;
-        p.image
-          .setPosition(
-            p.x + (p.vx * age) / 1000 + Math.sin(age * 0.002) * 18,
-            p.y + (p.vy * age) / 1000,
-          )
-          .setAlpha((1 - t) * (p.kind === "smoke" ? 0.22 : 0.85))
-          .setDisplaySize(
-            p.size * (1 + t * 0.8),
-            p.size * (p.kind === "petal" ? 1.4 : 1) * (1 + t * 0.8),
-          )
-          .setRotation(p.kind === "petal" ? t * 3 : 0);
+        if (p.kind === "wish") {
+          const sway = Math.sin(age * 0.003) * 16;
+          p.image
+            .setPosition(p.x + (p.vx * age) / 1000 + sway, p.y + (p.vy * age) / 1000)
+            .setAlpha(Math.sin(t * Math.PI) * 0.95)
+            .setDisplaySize(p.size * (1 + Math.sin(age * 0.008) * 0.25), p.size * (1 + Math.sin(age * 0.008) * 0.25))
+            .setRotation(age * 0.002);
+        } else {
+          p.image
+            .setPosition(
+              p.x + (p.vx * age) / 1000 + Math.sin(age * 0.002) * 18,
+              p.y + (p.vy * age) / 1000,
+            )
+            .setAlpha((1 - t) * (p.kind === "smoke" ? 0.22 : 0.85))
+            .setDisplaySize(
+              p.size * (1 + t * 0.8),
+              p.size * (p.kind === "petal" || p.kind === "gold_petal" ? 1.4 : 1) * (1 + t * 0.8),
+            )
+            .setRotation(p.kind === "petal" || p.kind === "gold_petal" ? t * 3 : 0);
+        }
       }
       stats.frames++;
       stats.effects = active;

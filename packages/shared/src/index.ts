@@ -82,7 +82,7 @@ export const mappingSchema = z.object({
   giftId: z.string().min(1).max(100),
   name: z.string().min(1).max(60),
   action: actionSchema,
-  intensity: z.number().int().min(1).max(3),
+  intensity: z.number().int().min(1).max(4),
   points: z.number().int().min(1).max(1000),
 });
 export type GiftMapping = z.infer<typeof mappingSchema>;
@@ -106,7 +106,7 @@ export interface Visitor {
 export interface Ceremony {
   id: string;
   action:
-    Action | "milestone" | "like" | "follow" | "audience-milestone" | "share";
+    Action | "milestone" | "like" | "follow" | "audience-milestone" | "share" | "comment";
   name: string;
   intensity: number;
   count: number;

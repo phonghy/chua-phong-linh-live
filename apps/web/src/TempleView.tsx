@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Flower2, Heart, Eye, Users, Volume2, VolumeX } from "lucide-react";
+import { Heart, Eye, Users, Volume2, VolumeX } from "lucide-react";
 import {
-  actionLabels,
   nextMilestone,
   type Snapshot,
 } from "../../../packages/shared/src/index.ts";
@@ -72,12 +71,7 @@ export function TempleView({
   }, [notice]);
   const milestone = nextMilestone(state?.progress ?? 0),
     progress = state?.progress ?? 0,
-    latest = state?.ceremonies.at(-1);
-  const prayer = state?.prayers.at(-1);
-  const announcement = state?.announcements.at(-1);
-  const announcementAge =
-    announcement && state ? state.serverTime - announcement.at : Infinity;
-  const announcementFresh = announcementAge >= 0 && announcementAge <= 20_000;
+    prayer = state?.prayers.at(-1);
   const audienceAge =
     state?.audience.updatedAt != null
       ? state.serverTime - state.audience.updatedAt
@@ -92,25 +86,6 @@ export function TempleView({
   const audienceLabel = audienceFresh
     ? `${state!.audience.current!.toLocaleString("vi-VN")} người xem đồng thời`
     : "Đang chờ số người xem";
-  const audienceMilestoneFresh =
-    latest?.action === "audience-milestone" && state
-      ? state.serverTime - latest.at >= 0 &&
-        state.serverTime - latest.at <= 12_000
-      : false;
-  const ceremonyText =
-    latest?.action === "audience-milestone"
-      ? `${latest.count.toLocaleString("vi-VN")} người cùng hiện diện`
-      : latest?.action === "share"
-        ? "Cảm ơn đã chia sẻ"
-        : latest?.action === "milestone"
-          ? "Một cột mốc an lành mới"
-          : latest?.action === "like"
-            ? "Gửi một chút yêu thương"
-            : latest?.action === "follow"
-              ? "Vừa ghé thăm chùa"
-              : latest
-                ? `${actionLabels[latest.action]}${latest.count > 1 ? ` ×${latest.count}` : ""}`
-                : "";
   const connectionLabel =
     state?.connector.mode === "tiktok"
       ? !client.connected
@@ -147,55 +122,17 @@ export function TempleView({
       </div>
       <div className="temple-heading">
         <h2>Tâm An Vạn Sự An</h2>
-        <p>Một niệm an lành, ngàn hoa nở.</p>
       </div>
       <div className="stream-comment-guide" aria-label="Hướng dẫn tương tác">
         <kbd>!le</kbd>
         <kbd>!nhang</kbd>
-        <kbd>!cau &lt;lời cầu&gt;</kbd>
+        <kbd>!cau lời cầu</kbd>
       </div>
       {!client.connected && (
         <div className="scene-connection" role="status">
           Đang kết nối lại máy chủ…
         </div>
       )}
-      <div className="temple-mid-notices">
-        {latest &&
-          (!announcementFresh || audienceMilestoneFresh) &&
-          !new URLSearchParams(location.search).has("capture") && (
-            <div className="offering-note">
-              <Flower2 size={18} />
-              <div>
-                <strong>{latest.name}</strong>
-                <span
-                  data-testid={
-                    audienceMilestoneFresh ? "audience-milestone" : undefined
-                  }
-                  className={
-                    audienceMilestoneFresh
-                      ? "audience-milestone-banner"
-                      : undefined
-                  }
-                >
-                  {ceremonyText}
-                </span>
-              </div>
-            </div>
-          )}
-        {announcementFresh &&
-          !audienceMilestoneFresh &&
-          announcement &&
-          !new URLSearchParams(location.search).has("capture") && (
-            <div
-              className="live-announcement"
-              role="status"
-              key={announcement.id}
-            >
-              <Flower2 size={17} />
-              <span>{announcement.text}</span>
-            </div>
-          )}
-      </div>
       <div className="temple-bottom">
         {notice && (
           <p className="scene-notice" role="status">

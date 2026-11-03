@@ -2,9 +2,9 @@
 
 > *Một niệm an lành, ngàn hoa nở.*
 
-Không gian chánh điện tương tác trực tiếp chạy ngay trên máy của bạn, thiết kế chuyên biệt cho buổi **LIVE TikTok** dọc chuẩn **9:16 (1080×1920)**: góc nhìn đại điện mở rộng `3/2`, chu trình máy quay điện ảnh đa góc độ (Trái · Phải · Giữa × Xa · Trung · Cận), đội hình **160 phật tử** ngồi đối xứng hai bên với hành lang chính giữa, **3 vị trí danh dự** bước lên trước bàn thờ Phật dâng hoa / thắp hương / vái lạy, tự động hiển thị & đọc lời cầu nguyện bằng **giọng đọc AI tiếng Việt** mở đầu *"Chùa Tâm An..."*, cùng Bảng tri ân và cột mốc công đức cộng đồng. Mặc định có sẵn chế độ **mô phỏng** để trải nghiệm ngay mà không cần tài khoản TikTok.
+Không gian chánh điện tương tác trực tiếp chạy ngay trên máy của bạn, thiết kế chuyên biệt cho buổi **LIVE TikTok** dọc chuẩn **9:16 (1080×1920)**: góc nhìn đại điện mở rộng `3/2`, chu trình máy quay điện ảnh đa góc độ lướt chậm rãi êm ái, đội hình **200 phật tử** ngồi đối xứng hai bên với hành lang chính giữa trang nghiêm, **3 vị trí danh dự** bước lên trước bàn thờ Phật dâng hoa / thắp hương / vái lạy, tự động nhận diện thông minh & đọc lời cầu nguyện bằng **giọng đọc AI tiếng Việt** mở đầu *"Chùa Tâm An..."*, hiệu ứng hào quang đắc đạo cho Đại thí chủ cúng dường, cùng Bảng tri ân và cột mốc công đức cộng đồng. Mặc định có sẵn chế độ **mô phỏng** để trải nghiệm ngay mà không cần tài khoản TikTok.
 
-**Công nghệ:** Phaser 4.2.1 · React · TypeScript · Node.js · SQLite
+**Công nghệ:** Phaser 4.2.1 · React 19 · TypeScript 5.8 · Vite 6 · Node.js 24 · SQLite
 
 ---
 
@@ -13,12 +13,12 @@ Không gian chánh điện tương tác trực tiếp chạy ngay trên máy c�
 <table>
   <tr>
     <td align="center" valign="top" width="50%">
-      <img src="screenshots/game.png" alt="Toàn cảnh đại điện Tâm An Vạn Sự An: góc rộng 9:16, 160 phật tử xếp 2 bên, hành lang giữa, 3 vị trí hành lễ trước bàn thờ, lời cầu nguyện và bảng tri ân bên phải" width="340"><br>
-      <sub><b>Đạo tràng · Góc Toàn cảnh (Xa)</b> (<code>/overlay</code>, <code>/game</code>)<br>Khung dọc chuẩn 9:16 với góc nhìn đại điện mở rộng 3/2, đội hình 2 bên (10 hàng × 8 người/bên = 160 phật tử), hành lang giữa và 3 vị trí hành lễ trước lư hương.</sub>
+      <img src="screenshots/game.png" alt="Toàn cảnh đại điện Tâm An Vạn Sự An: góc rộng 9:16, 200 phật tử xếp 2 bên, hành lang giữa, 3 vị trí hành lễ trước bàn thờ, lời cầu nguyện và bảng tri ân bên phải" width="340"><br>
+      <sub><b>Đạo tràng · Góc Toàn cảnh</b> (<code>/overlay</code>, <code>/game</code>)<br>Khung dọc chuẩn 9:16 với góc nhìn đại điện mở rộng 3/2, đội hình 2 bên (10 hàng × 10 người/bên = <b>200 phật tử</b>), hành lang giữa rộng rãi và 3 vị trí danh dự trước Tam Bảo.</sub>
     </td>
     <td align="center" valign="top" width="50%">
       <img src="screenshots/game-closeup.png" alt="Góc cận cảnh sát tượng Phật và 3 vị trí phật tử đang vái lạy, dâng hoa, thắp nhang trước bàn thờ" width="340"><br>
-      <sub><b>Đạo tràng · Góc Cận cảnh (Sát tượng & người hành lễ)</b><br>Máy quay tự động lướt cận cảnh sát tượng Phật, hào quang bàn thờ và những phật tử đang thành kính vái lạy / dâng hương.</sub>
+      <sub><b>Đạo tràng · Góc Cận cảnh & Chiều sâu</b><br>Máy quay tự động lướt chậm rãi, soi rõ tượng Phật, bàn thờ Tam Bảo, từng người quỳ lễ và bảng tên thếp vàng của Phật tử hai bên.</sub>
     </td>
   </tr>
 </table>
@@ -27,49 +27,58 @@ Không gian chánh điện tương tác trực tiếp chạy ngay trên máy c�
   <tr>
     <td align="center" valign="top" width="50%">
       <img src="screenshots/admin-dashboard.png" alt="Phòng điều khiển: xem trước trực tiếp, tương tác thử, mô phỏng 1.000 người xem và Bảng tri ân" width="460"><br>
-      <sub><b>Phòng điều khiển</b> (<code>/admin</code>)<br>Xem trước trực tiếp 60 FPS, gửi tương tác thử, mô phỏng 1.000 người xem (lấp đầy 160 phật tử), theo dõi Bảng tri ân và lịch sử sự kiện.</sub>
+      <sub><b>Phòng điều khiển</b> (<code>/admin</code>)<br>Xem trước trực tiếp 60 FPS, gửi tương tác thử, mô phỏng người xem lấp đầy 200 phật tử, theo dõi Bảng tri ân và lịch sử sự kiện.</sub>
     </td>
     <td align="center" valign="top" width="50%">
       <img src="screenshots/admin-setting.png" alt="Cài đặt: giọng đọc AI tiếng Việt, âm lượng, đường dẫn OBS lvh.me và kết nối TikTok LIVE" width="460"><br>
-      <sub><b>Cài đặt & Kết nối</b> (<code>/admin</code>)<br>Tùy chỉnh góc máy tự động, giọng đọc AI tiếng Việt, âm nền, tiếng chuông, đường dẫn nguồn OBS và kết nối TikTok LIVE.</sub>
+      <sub><b>Cài đặt & Kết nối</b> (<code>/admin</code>)<br>Tùy chỉnh góc máy, giọng đọc AI tiếng Việt, âm nền, tiếng chuông, ánh xạ 18 loại quà tặng TikTok và kết nối TikTok LIVE.</sub>
     </td>
   </tr>
 </table>
 
 ---
 
-## Tính năng nổi bật (Bản cập nhật mới)
+## Tính năng nổi bật & Nâng cấp mới
 
-### 1. Không gian Chánh điện 9:16 mở rộng & Chu trình Camera điện ảnh 8 góc độ
-- **Giữ chuẩn khung hình dọc `9:16` (`1080×1920`)** cho TikTok LIVE / OBS, đồng thời **mở rộng góc nhìn ảnh nền đại điện gấp `3/2` lần** (`temple-hall-wide.jpg`) giúp không gian thâm nghiêm, sâu và thoáng rộng hơn mà không遮 khuất tượng Phật.
-- **Chu trình lia máy tự động 8 góc đa dạng** với tốc độ chậm rãi, tĩnh tại (~13,5 giây mỗi chuyển cảnh) kết hợp chiều sâu 2.5D:
-  1. **Giữa · Xa**: Toàn cảnh đại điện từ vòm gỗ chạm khắc đến thảm đỏ.
-  2. **Đá Trái · Trung**: Lướt sang dãy phật tử và hàng cột đèn lồng bên trái.
-  3. **Giữa · Cận**: Zoom sát tượng Phật, bàn thờ và 3 vị trí phật tử đang vái lạy / dâng hương.
-  4. **Đá Phải · Trung**: Lướt sang dãy phật tử và hàng cột đèn lồng bên phải.
-  5. **Giữa · Trung**: Trung cảnh dọc hành lang chính giữa và hai bên lễ đường.
-  6. **Đá Trái · Cận**: Góc cận nghiêng trái bàn thờ & khói hương.
-  7. **Đá Phải · Cận**: Góc cận nghiêng phải bàn thờ & hoa sen.
-  8. **Giữa · Xa**: Trở về toàn cảnh tĩnh tại.
+### 1. Đội hình 200 Phật tử & Tự động lấp đầy theo mắt xem Live
+- **Mở rộng quy mô 200 chỗ ngồi:** Đội hình phân bổ cân đối 2 bên tả – hữu, mỗi bên gồm **10 hàng × 10 người** (`100 người/bên`), giữ nguyên **hành lang trung tâm thênh thang** và khoảng sân hành lễ trang nghiêm trước Phật đài.
+- **Tự động lấp đầy đạo tràng:** Khi phòng live đạt lượng người xem đông (hàng trăm đến hàng nghìn mắt xem), hệ thống tự động lấp kín 200 vị trí. Người xem TikTok tương tác thật được ưu tiên xếp chỗ ngồi trang trọng trong 5 phút.
 
-### 2. Đội hình 160 Phật tử (2 bên × 10 hàng × 8 người) & Lộ trình di chuyển chữ L
-- **Xếp đội hình cân đối hai bên tả – hữu**: Mỗi bên gồm **10 hàng**, mỗi hàng **8 người ngồi sát nhau** ngay ngắn (tối đa `80 người/bên` = **160 phật tử** hiện diện cùng lúc), chừa **1 hành lang rộng ở chính giữa** thảm đỏ và khoảng thoáng trang nghiêm trước bàn thờ.
-- **Hiển thị tên TikTok trên đầu nhân vật**: Tên người xem luôn hiển thị rõ ràng phía trên đầu nhân vật trong suốt thời gian hiện diện, tự động căn lệch tầng nhẹ giữa các vị trí liền kề để không đè chữ.
-- **Di chuyển thực tế theo hành lang giữa**:
-  - **Khi mới vào phòng LIVE (`join`)**: Nhân vật xuất hiện từ dưới cùng của hành lang giữa, đi thẳng dọc hành lang lên đến đúng hàng ghế của mình rồi mới rẽ trái/phải vào vị trí ngồi thiền định.
-  - **Khi thực hiện hành lễ (`!le`, `!nhang`, `!cau`, tặng quà)**: Nhân vật đứng dậy, đi từ ghế ngồi ra hành lang giữa trước, sau đó mới tiến thẳng dọc hành lang lên **1 trong 3 vị trí danh dự trước bàn thờ Phật** để dâng hoa, thắp nhang hoặc vái lạy (kèm vòng hào quang dưới chân, nhãn hành động `✦ Dâng Hoa Lễ Phật` / `✦ Lên Thắp Hương` / `✦ Lên Vái Lạy` / `✦ Dâng Lời Nguyện` và hiệu ứng khói hương, cánh sen). Khi hành lễ xong, nhân vật lùi dọc hành lang giữa về lại đúng hàng rồi rẽ vào chỗ ngồi.
+### 2. Chu trình Camera điện ảnh lướt chậm rãi & Cận cảnh chân thực
+- **Kéo dài chu trình lên 22 giây mỗi góc quay:**
+  - **7.7 giây đầu (~35% thời lượng):** Camera chuyển động lướt cực kỳ êm ái, an tịnh từ góc trước sang góc mới.
+  - **14.3 giây tiếp theo (~65% thời lượng):** Camera dừng lại ngắm cận cảnh tĩnh lặng kết hợp nhịp thở phong thủy khẽ khàng, giúp người xem ngắm rõ bản thân và không gian chùa mà không bị cảm giác lia máy vội vàng.
+- **6 góc quay đa dạng:** Cận cảnh 3 người dâng hương trước Tam Bảo (zoom 2.24×), Cận cảnh khối Phật tử cánh tả (zoom 1.85×), Cận cảnh khối Phật tử cánh hữu (zoom 1.85×), Toàn cảnh đại điện ấm cúng, Cận cao kim thân Phật tổ, và Góc nhìn dọc hành lang trung tâm.
 
-### 3. Bố cục Giao diện tinh gọn – Không bị bình luận TikTok che khuất
-- **Phía trên tiêu đề `Tâm An Vạn Sự An`**: Đặt gọn 2 huy hiệu **Số khách hiện diện** và **Số người xem đồng thời** cùng trạng thái kết nối ở góc phải; bỏ các hộp hướng dẫn cồng kềnh che tượng Phật, chỉ giữ **3 nút lệnh nổi bật** (`!le`, `!nhang`, `!cau <lời cầu>`) ngay dưới câu đề từ *"Một niệm an lành, ngàn hoa nở."*
-- **Cao độ `2/5` từ dưới lên (`bottom: 40%`)**: Cụm thông báo hành lễ và lời dẫn được thiết kế dạng dải mảnh tinh tế có viền vàng nhấn bên trái, đặt ở vị trí `2/5` màn hình tính từ dưới lên để nằm hoàn toàn phía trên vùng trôi bình luận của TikTok LIVE.
-- **Nửa bên phải (`48%` chiều ngang)**: Khung **Lời cầu nguyện** (nằm trên, chiều cao tự động co giãn theo độ dài lời nguyện) và **Bảng tri ân** (nằm ngay dưới, cách nhau một khoảng thoáng) được căn gọn sang nửa bên phải màn hình với viền vàng kim bên phải, giúp người xem đọc trọn vẹn mà không bị bình luận TikTok ở góc trái che mất.
+### 3. Phân cấp 4 tầng Quà tặng & Hiệu ứng "Hào quang Phật đắc đạo"
+- **Tier 1 (< 20 điểm):** Lấp lánh ánh kim tuyến nhẹ nhàng.
+- **Tier 2 (20 – 99 điểm):** Camera chuyển động bám theo người dâng lễ, mưa hoa sen.
+- **Tier 3 (100 – 999 điểm):** Camera zoom cận cảnh 2.3×, xuất hiện vòng hào quang Phật pháp 175px sau đầu, mưa 70 cánh sen vàng.
+- **Tier 4 (Từ 1.000 điểm trở lên - Du thuyền, Sư tử, Pháo hoa...):**
+  - Xuất hiện **Vòng đại hào quang Phật đắc đạo 250px** đa tầng ánh sáng vàng rực xoay tròn liên tục quanh đầu thí chủ.
+  - **Toàn bộ 200 Phật tử** trong đại điện đồng loạt phủ phục cúi lạy trong 6.5 giây để cảm tạ đại công đức.
+  - Rung chấn màn hình trang trọng (screen shake 380ms) và mưa 130 cánh hoa sen vàng rực rỡ.
+  - Vinh danh trên banner hoàng kim: `✦ ĐẠI THÍ CHỦ CÚNG DƯỜNG ✦`.
 
-### 4. Giọng đọc AI Tiếng Việt tự động (`Chùa Tâm An...`)
-- Hỗ trợ tổng hợp giọng đọc tiếng Việt tự nhiên đa nền tảng (Edge/Google TTS trên **Windows & Linux**, cùng giọng Linh bản địa trên **macOS**).
-- Tự động giảm nhỏ nhạc nền (ducking) khi đọc và phát lời chúc mở đầu bằng **"Chùa Tâm An..."**:
-  - **Chào đón người mới vào LIVE (`join`)**: *"Chùa Tâm An xin chào đón [Tên] đã ghé thăm chùa."* (giới hạn tần suất 60 giây/người để tránh lặp).
-  - **Đọc trực tiếp lời cầu nguyện (`!cau <lời cầu>`)**: Tự động hiển thị lên khung lời cầu nguyện và đọc vang *"Chùa Tâm An thành tâm cầu nguyện cùng [Tên]: [Nội dung lời cầu]"*.
-  - **Tri ân quà tặng, theo dõi, chia sẻ & cột mốc người xem**: *"Chùa Tâm An xin cảm ơn [Tên] đã gửi quà / đã theo dõi / đã chia sẻ LIVE"*, *"Chùa Tâm An hân hoan đón [N] người đang cùng theo dõi"*.
+### 4. Tự động nhận diện thông minh Lời cầu nguyện & Lời chúc
+- **Tự động lọc sạch dấu ngoặc:** Người xem gõ `!cau< chúc sức khỏe >`, `!cau<bình an>`, `!cầu: an lành` hay `!cau [vạn sự như ý]` đều được tự động làm sạch thành văn bản thuần túy, không còn bị đọc thành "ngoặc nhọn ngoặc vuông".
+- **Nhận diện bình luận tự nhiên (không cần gõ `!cau`):**
+  - Người xem gõ `adidaphat chúc gia đình luôn bình an`, `a di đà phật cầu cho con thi đỗ`, `nam mô a di đà phật con cầu sức khỏe`... hệ thống tự động tách câu niệm Phật, lấy lời nguyện đưa lên khung text và cho bot đọc ngay!
+  - Gõ tự do chứa từ khóa tâm nguyện (`chúc`, `cầu`, `nguyện`, `mong`, `xin`, `bình an`, `sức khỏe`...) đều được tự động ghi nhận là Lời cầu an.
+  - Nếu chỉ gõ niệm Phật đơn thuần (`A Di Đà Phật`): Hệ thống nhận diện là Lễ Phật, Phật tử cúi lạy và phóng đốm sáng bay lên Tam Bảo (không chen vào giọng đọc).
+
+### 5. Hàng đợi Ưu tiên & Quy tắc chào đón 1/5 (80/20)
+- **Hàng đợi ưu tiên (Quà tặng > Lời cầu > Lời chào):** Quà tặng luôn được xếp lên vị trí số 1, kế tiếp là lời cầu nguyện `!cau`.
+- **Đọc trọn vẹn, không ngắt dở:** Bot sẽ đọc cho xong câu chào hiện tại một cách tự nhiên, êm ái, sau đó lập tức đọc tiếp lời cảm ơn quà tặng / lời cầu nguyện đã được ưu tiên đưa lên đầu hàng đợi.
+- **Quy tắc chào đón 1/5 khi từ 100 người xem trở lên:**
+  - **80% (4/5 khách):** Chỉ đọc câu chào ngắn gọn 2-3s (*"Chùa Tâm An xin chào đón [Tên] đã ghé thăm chùa"*).
+  - **20% (Cứ mỗi người thứ 5):** Đọc chào đón kèm lời chúc phúc cát tường.
+  - Giúp lời chúc trở nên đắt giá, trang trọng, không bị ngợp hay nghẽn hàng đợi âm thanh.
+- **Kho 115 lời chúc Phật pháp:** Tích hợp sẵn tại `data/blessings.json` với thuật toán chống trùng lặp câu liền kề.
+
+### 6. Giao diện Live siêu thoáng đãng
+- Bỏ cụm thông báo hành lễ và dải chữ lời dẫn nhảy giữa màn hình để không che khuất tượng Phật và cảnh chùa.
+- Giữ tinh gọn bảng tên Phật tử, dải hướng dẫn tương tác không có ngoặc rối mắt (`!le`, `!nhang`, `!cau lời cầu`), khung lời cầu nguyện và thanh tiến độ công đức.
 
 ---
 
@@ -84,34 +93,18 @@ Chỉ cần nhấp đúp vào tệp **`ChayChua.bat`** trong thư mục dự án
 | Đường dẫn nhanh (`lvh.me`) | Đường dẫn mặc định (`localhost:3000`) | Công dụng |
 | --- | --- | --- |
 | [`http://lvh.me/admin`](http://lvh.me/admin) | [`http://127.0.0.1:3000/admin`](http://127.0.0.1:3000/admin) | **Phòng điều khiển** dành cho người vận hành |
-| [`http://lvh.me/game`](http://lvh.me/game) | [`http://127.0.0.1:3000/game`](http://127.0.0.1:3000/game) | **Đạo tràng**: có nút bật/tắt âm thanh trực tiếp trên trình duyệt |
+| [`http://lvh.me/game`](http://lvh.me/game) | [`http://127.0.0.1:3000/game`](http://127.0.0.1:3000/game) | **Đạo tràng**: xem trực tiếp có âm thanh |
 | [`http://lvh.me/overlay`](http://lvh.me/overlay) | [`http://127.0.0.1:3000/overlay`](http://127.0.0.1:3000/overlay) | **Nguồn OBS (Hình ảnh)**: chỉ cảnh chùa chuẩn 9:16 |
 | [`http://lvh.me/overlay?audio=1`](http://lvh.me/overlay?audio=1) | [`http://127.0.0.1:3000/overlay?audio=1`](http://127.0.0.1:3000/overlay?audio=1) | **Nguồn OBS (Có âm thanh & giọng đọc AI)** |
 
-> **Mẹo dùng `lvh.me` trên Windows:** Thêm dòng `127.0.0.1 lvh.me` vào tệp `C:\Windows\System32\drivers\etc\hosts` và đặt `PORT=80` trong `.env` để sử dụng đường dẫn ngắn gọn không cần số cổng.
-
-### Cách 2: Chạy bằng dòng lệnh (`npm` hoặc `make`)
-
-Cần Node.js **≥ 24** và npm. Chạy trong thư mục dự án:
+### Cách 2: Chạy bằng dòng lệnh (`npm`)
 
 ```sh
 npm install
 npm run dev
 ```
 
-Hoặc nếu máy có `make`:
-
-```sh
-make setup
-make
-```
-
-`make setup` cài phụ thuộc và tạo `.env` từ `.env.example` nếu chưa có; tệp `.env` hiện có được giữ nguyên. Dùng `make run` để khởi động lại máy chủ, `Ctrl+C` để dừng, `make help` để xem các lệnh, `make install` để chỉ cài phụ thuộc và `make test` để chạy unit/integration tests.
-
-Mở **Phòng điều khiển** (`/admin`) và bấm **Chạy mô phỏng** (hoặc nhập `1000` vào ô *Người xem đồng thời · mô phỏng* rồi bấm **Cập nhật người xem**) để lấp đầy **160 phật tử** ngồi kín 10 hàng hai bên và tự động gửi tương tác; bấm **Dừng mô phỏng** để dừng.
-
 Chạy bản production:
-
 ```sh
 npm run build
 npm start
@@ -119,97 +112,38 @@ npm start
 
 ---
 
+## Đẩy cập nhật lên GitHub bằng `DayLenGitHub.bat`
+
+Khi bạn có các chỉnh sửa mới hoặc muốn đồng bộ toàn bộ dự án lên kho GitHub cá nhân:
+1. Nhấp đúp vào tệp **`DayLenGitHub.bat`**.
+2. Công cụ sẽ tự động:
+   - Nhận diện Git trên máy tính.
+   - Tự động đóng gói tất cả các tệp mã nguồn, tài nguyên và cấu hình lời chúc mới.
+   - Tạo commit với mô tả chi tiết các tính năng.
+   - Đẩy thẳng lên nhánh `main` của kho lưu trữ `https://github.com/phonghy/chua-phong-linh-live`.
+
+---
+
 ## Tương tác của người xem trên TikTok LIVE
 
-Hệ thống hỗ trợ đầy đủ cả lệnh **không dấu**, **có dấu tiếng Việt** và **không cần dấu chấm than (`!`)** đối với các lệnh phổ biến:
-
 | Bình luận / Sự kiện | Hành động trong Chánh điện | Điểm công đức & Hiệu ứng |
-| --- | --- | --- |
-| `!le`, `!lễ`, `le`, `lễ`, `!lay`, `!lạy` | **Lễ Phật**: Đi ra hành lang giữa $\rightarrow$ tiến lên trước bàn thờ vái lạy | `+1` điểm công đức chung, ghi nhận Bảng tri ân |
-| `!nhang`, `nhang`, `!huong`, `!hương` | **Thắp nhang**: Đi ra hành lang giữa $\rightarrow$ tiến lên lư hương dâng nhang | `+1` điểm công đức chung, khói hương trầm, ghi nhận Bảng tri ân |
-| `!cau <lời cầu>`, `!cầu <lời cầu>`, `cầu <lời cầu>` | **Cầu nguyện**: Tiến lên trước bàn thờ + hiện lời cầu nguyện + **Giọng AI đọc vang lời cầu** | `+1` điểm công đức chung, hiện lên khung Lời cầu nguyện & đọc giọng AI |
-| **Tặng Quà LIVE** | **Dâng hoa sen**: Ưu tiên bước lên 3 vị trí danh dự trước bàn thờ Phật | Cộng điểm theo cấu hình quà, mưa cánh sen hồng & giọng AI cảm ơn |
-| **Vào phòng LIVE (`join`)** | Đi từ dưới cùng hành lang giữa lên hàng ghế & hiện tên trên đầu | Giọng AI chào đón *"Chùa Tâm An xin chào đón..."* (cooldown 60s/người) |
-| **Theo dõi (`follow`) / Chia sẻ (`share`)** | Hiệu ứng ánh sáng & lời cảm ơn | Giọng AI đọc lời cảm ơn |
+| :--- | :--- | :--- |
+| `!le`, `!lễ`, `le`, `lễ`, `!lay`, `!lạy`, `lạy` | **Lễ Phật**: Phật tử đại diện chắp tay vái lạy | `+1` điểm công đức, hoa đăng sáng |
+| `!nhang`, `nhang`, `!huong`, `!hương`, `hương` | **Thắp nhang**: Dâng hương trước lư đồng | `+1` điểm công đức, khói hương trầm |
+| `!cau <lời cầu>`, `cầu <lời cầu>`, `adidaphat chúc...`, `chúc...` | **Cầu nguyện**: Tự động lọc sạch ngoặc `<>`, hiện khung text và **Giọng AI đọc vang lời cầu** | `+1` điểm công đức, giọng AI đọc tri ân ưu tiên |
+| **Bình luận niệm Phật (`A Di Đà Phật`)** | Tỏa hào quang hoa sen vàng ấm áp, đốm sáng tâm nguyện bay lên Tam Bảo | Phật tử cúi lạy niệm Phật |
+| **Tặng Quà LIVE** | **Cúng dường Tam Bảo**: Kích hoạt hiệu ứng theo 4 cấp độ (Tier 1 – Tier 4) | Cộng điểm theo quà, mưa sen vàng, giọng AI cảm ơn và vòng hào quang đắc đạo |
+| **Vào phòng LIVE (`join`)** | Xuất hiện trong đại điện (sức chứa 200 người) | Giọng AI chào đón theo cơ chế 1/5 |
+| **Theo dõi (`follow`) / Chia sẻ (`share`)** | Tỏa sáng đại điện & Giọng AI cảm ơn | Tăng bộ đếm công đức |
 | **Thả tim (`like`)** | Hiệu ứng ánh sáng ấm áp | Tăng bộ đếm yêu thương |
-
-- Lệnh không phân biệt chữ hoa/thường; mặc định mỗi khách chờ `10 giây` giữa các lệnh hợp lệ (có thể chỉnh trong Cài đặt).
-- Lời nguyện tối đa `240 ký tự`. Tên khách được làm sạch và hiển thị dưới dạng văn bản thuần, an toàn tuyệt đối (không thực thi HTML/script).
-- Mốc `100 / 250 / 500` và mỗi `500` điểm tiếp theo làm sáng thêm ánh đèn đại điện và kích hoạt lễ hoa sen.
-
----
-
-## Quản trị (`/admin`)
-
-- **Phòng điều khiển**: Xem trước trực tiếp, bảng tương tác thử cục bộ (Lễ Phật, Thắp nhang, Gửi quà, Gửi lời cầu nguyện, Cập nhật số người xem đồng thời mô phỏng lên tới `1.000+` người để lấp đầy 160 chỗ ngồi).
-- **Lời cầu nguyện**: Xem danh sách lời cầu nguyện đã hiển thị hoặc duyệt/ẩn thủ công.
-- **Quà tặng**: Ánh xạ mã quà TikTok thật sang hành động (`lotus`, `incense`, `bow`), cường độ hiệu ứng (`1–3`) và số điểm đóng góp.
-- **Cài đặt**:
-  - Chuyển đổi góc nhìn (**Toàn cảnh** / **Cận cảnh**) hoặc bật **Tự động chuyển góc máy** (chu trình 8 góc).
-  - Bật/tắt **Giọng đọc AI**, chỉnh âm lượng giọng đọc, âm lượng nhạc nền và tiếng chuông.
-  - Sao chép đường dẫn nguồn phát OBS (`/overlay` và `/overlay?audio=1`).
-  - Cấu hình tài khoản **TikTok LIVE** (`@username`).
-
-### Bảng tri ân theo phiên LIVE
-- Bảng **Quà tặng** ghi nhận điểm đóng góp theo ánh xạ quà. Bảng **Tham gia miễn phí** ghi nhận lệnh lễ/nhang và lời cầu nguyện. Mỗi bảng hiển thị 5 người dẫn đầu trên màn hình LIVE (tự động luân phiên mỗi 12 giây giữa bảng Quà tặng và bảng Tham gia).
-- Trong quản trị, bấm **Bắt đầu phiên mới → Xác nhận phiên mới** để đặt lại bảng xếp hạng của phiên mới mà vẫn giữ nguyên tiến độ công đức chung, cài đặt và ánh xạ quà.
-
-### Cột mốc khán giả và chia sẻ
-- Số **người xem đồng thời** lấy từ thống kê phòng TikTok LIVE thực tế (hoặc bộ mô phỏng trong `/admin`).
-- Các mốc `100 / 250 / 500 / 1.000` và mỗi `1.000` người xem tiếp theo kích hoạt đại lễ hoa sen toàn chánh điện: toàn bộ phật tử đồng loạt vái lạy, ánh sáng chánh điện bừng sáng và giọng AI đọc lời chào mừng cột mốc.
-
----
-
-## Kết nối TikTok LIVE
-
-1. Mở [`http://lvh.me/admin`](http://lvh.me/admin) → tab **Cài đặt → Kết nối TikTok**.
-2. Nhập **tên tài khoản TikTok đang phát LIVE** (ví dụ `ojv.music` hoặc `@ojv.music`) và bấm **Lưu thông tin**.
-3. Bấm **Kết nối TikTok**. Khi kết nối thành công, huy hiệu góc trên bên phải cảnh chùa sẽ chuyển sang **`TikTok LIVE`**.
-4. Nếu tài khoản chưa phát LIVE, bảng điều khiển sẽ báo rõ *"Tài khoản @... hiện chưa phát LIVE trên TikTok"*.
-5. Bấm **Dùng mô phỏng** bất cứ lúc nào để ngắt kết nối TikTok và quay về chế độ thử cục bộ.
-
-> **Lưu ý kỹ thuật:** Connector sử dụng `tiktok-live-connector` v2 (hỗ trợ chuẩn gói tin Webcast Protobuf v3 mới nhất, trích xuất đầy đủ `content`/`comment`, tự động bỏ qua `fetchAvailableGifts` không cần khóa trả phí và giữ kết nối bền bỉ khi gặp gói tin phụ lạ). Không yêu cầu mật khẩu hay cookie tài khoản TikTok.
-
----
-
-## Thiết lập OBS Studio / TikTok LIVE Studio
-
-1. Chạy ứng dụng bằng `ChayChua.bat` (hoặc `npm run dev`).
-2. Trong **OBS Studio** hoặc **TikTok LIVE Studio**, thêm nguồn **Browser Source** (Nguồn trình duyệt):
-   - **URL (Có đầy đủ âm thanh & giọng đọc AI):** `http://lvh.me/overlay?audio=1` (hoặc `http://127.0.0.1:3000/overlay?audio=1`)
-   - **URL (Chỉ hình ảnh):** `http://lvh.me/overlay`
-   - **Width (Chiều rộng):** `1080`
-   - **Height (Chiều cao):** `1920`
-   - **FPS:** `30` hoặc `60`
-3. Tích chọn **Control audio via OBS** (Điều khiển âm thanh qua OBS) nếu muốn chỉnh âm lượng trực tiếp trên thanh Mixer của OBS.
-4. Nếu mở trên trình duyệt Chrome/Edge thông thường với `?audio=1`, chỉ cần nhấp chuột 1 lần vào trang để trình duyệt mở khóa tự động phát âm thanh.
-
----
-
-## Ứng dụng máy tính đóng gói sẵn (macOS, Windows)
-
-- Tự dựng cục bộ cần [Bun](https://bun.sh) ≥ 1.4.4: chạy `npm ci`, sau đó `npm run package` (cho máy hiện tại) hoặc `npm run package -- --target bun-windows-x64` / `bun-darwin-arm64` / `bun-darwin-x64`. Kết quả xuất ra tại thư mục `release/`.
-- Workflow `.github/workflows/build.yml` tự động dựng và kiểm tra cả ba bản trên GitHub Actions, đồng thời tạo Release khi đẩy tag `v*` (ví dụ `git tag v0.2.0 && git push origin v0.2.0`).
-
----
-
-## Dữ liệu, Sao lưu & Kiểm thử
-
-- Mặc định dữ liệu lưu tại `data/temple.sqlite` (cùng các tệp WAL/SHM). Thư mục `data/` và tệp `.env` được loại trừ khỏi Git để bảo mật.
-- **Sao lưu:** Dừng máy chủ bằng `Ctrl+C`, sao chép toàn bộ thư mục `data/`, sau đó khởi động lại.
-- **Kiểm thử & Xây dựng:**
-  ```sh
-  npm run check
-  npm test
-  npm run build
-  ```
 
 ---
 
 ## Cấu trúc thư mục
 
-- `apps/web`: Giao diện React tiếng Việt, cảnh chùa Phaser 4.2.1 (`game.ts`), bố cục lớp phủ (`TempleView.tsx`, `Leaderboard.tsx`, `style.css`), âm thanh & giọng đọc (`audio.ts`).
-- `apps/server`: Engine xử lý trạng thái & lộ trình (`engine.ts`), lưu trữ SQLite (`store.ts`), tổng hợp giọng đọc AI tiếng Việt (`tts.ts`), kết nối TikTok LIVE (`connectors.ts`).
-- `packages/shared`: Định nghĩa kiểu dữ liệu, schema kiểm tra hợp lệ (Zod) và trạng thái đồng bộ.
-- `screenshots/`: Ảnh chụp giao diện Đạo tràng (toàn cảnh, cận cảnh) và Phòng điều khiển.
-- `ChayChua.bat`: Công cụ khởi động nhanh 1 chạm trên Windows.
+- `apps/web`: Giao diện React 19, cảnh chùa Phaser 4.2.1 (`game.ts`), bố cục lớp phủ (`TempleView.tsx`, `Leaderboard.tsx`, `style.css`), âm thanh & bộ máy giọng đọc ưu tiên (`audio.ts`, `narrator.ts`).
+- `apps/server`: Engine điều phối trạng thái (`engine.ts`), kho 115 lời chúc (`blessings.ts`), lưu trữ SQLite (`store.ts`), tổng hợp giọng đọc AI (`narrator.ts`), kết nối TikTok LIVE (`connectors.ts`).
+- `packages/shared`: Schema kiểm tra hợp lệ (Zod) và các kiểu dữ liệu dùng chung.
+- `data/`: Chứa cơ sở dữ liệu `temple.sqlite` và kho lời chúc Phật giáo `blessings.json`.
+- `ChayChua.bat`: Khởi động ứng dụng 1 chạm trên Windows.
+- `DayLenGitHub.bat`: Đẩy toàn bộ cập nhật lên GitHub 1 chạm.

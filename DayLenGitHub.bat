@@ -1,37 +1,68 @@
 @echo off
-title Day Cap Nhat Len GitHub - Tam An Van Su An
+chcp 65001 >nul
+title Day Cap Nhat Len GitHub - Tam An Van Su An LIVE
 cd /d "%~dp0"
 
-set "GIT=%USERPROFILE%\.local\mingit\cmd\git.exe"
-set "GH=%USERPROFILE%\.local\gh\bin\gh.exe"
-set "PATH=%USERPROFILE%\.local\mingit\cmd;%USERPROFILE%\.local\gh\bin;%PATH%"
-
 echo ========================================================
-echo   DAY CAP NHAT LEN GITHUB (phonghy/chua-phong-linh-live)
+echo   ĐẨY CẬP NHẬT LÊN GITHUB (phonghy/chua-phong-linh-live)
 echo ========================================================
 echo.
 
-"%GH%" auth status >nul 2>&1
-if errorlevel 1 (
-    echo [1/3] Dang mo trinh duyet de dang nhap GitHub...
-    echo. | "%GH%" auth login --web -h github.com -p https -s repo,workflow
-    if errorlevel 1 (
-        echo Dang nhap chua hoan tat. Vui long thu lai.
-        pause
-        exit /b 1
-    )
+rem 1. Tim kiem git.exe tren may
+set "GIT=git"
+if exist "%USERPROFILE%\.local\mingit\cmd\git.exe" (
+    set "GIT=%USERPROFILE%\.local\mingit\cmd\git.exe"
+) else if exist "C:\Program Files\Git\cmd\git.exe" (
+    set "GIT=C:\Program Files\Git\cmd\git.exe"
 )
 
-echo [2/3] Cau hinh quyen Git va dong goi cap nhat...
-"%GH%" auth setup-git -h github.com
-"%GIT%" add -A
-"%GIT%" diff --cached --quiet || "%GIT%" commit -m "Cap nhat Tam An Van Su An LIVE"
+"%GIT%" --version >nul 2>&1
+if errorlevel 1 (
+    echo [LOI] Khong tim thay Git tren may tinh. Vui long cai dat Git.
+    pause
+    exit /b 1
+)
 
+rem 2. Tim kiem gh.exe (neu co thi dung de xac thuc tu dong)
+set "GH="
+if exist "%USERPROFILE%\.local\gh\bin\gh.exe" (
+    set "GH=%USERPROFILE%\.local\gh\bin\gh.exe"
+) else (
+    where.exe gh >nul 2>&1
+    if not errorlevel 1 set "GH=gh"
+)
+
+if defined GH (
+    "%GH%" auth status >nul 2>&1
+    if errorlevel 1 (
+        echo [1/3] Mo trinh duyet dang nhap GitHub qua GitHub CLI...
+        echo. | "%GH%" auth login --web -h github.com -p https -s repo,workflow
+    )
+    "%GH%" auth setup-git -h github.com >nul 2>&1
+) else (
+    echo [1/3] Su dung Git truc tiep de day ma nguon...
+)
+
+echo [2/3] Dong goi toan bo ma nguon va tinh nang moi...
+"%GIT%" add -A
+"%GIT%" diff --cached --quiet
+if errorlevel 1 (
+    "%GIT%" commit -m "Cap nhat nang cap toan dien: 200 vi tri dao trang, camera luot em ai, hao quang phat dac dao, tu dong nhan dien loi nguyen va hang doi uu tien"
+) else (
+    echo Khong co thay doi moi can commit.
+)
+
+echo.
 echo [3/3] Dang day ban cap nhat len https://github.com/phonghy/chua-phong-linh-live ...
 "%GIT%" push -u origin main
 if errorlevel 1 (
     echo.
-    echo [LOI] Chua day duoc len GitHub. Hay kiem tra tai khoan co quyen ghi vao phonghy/chua-phong-linh-live.
+    echo ========================================================
+    echo [THONG BAO] Neu GitHub yeu cau xac thuc:
+    echo   - Trinh duyet hoac cua so dang nhap GitHub se hien len.
+    echo   - Hay bam Sign In de hoan tat.
+    echo Neu van chua day duoc, hay kiem tra quyen ghi vao repository.
+    echo ========================================================
     pause
     exit /b 1
 )

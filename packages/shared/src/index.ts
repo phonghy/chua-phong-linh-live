@@ -137,6 +137,7 @@ export interface Announcement {
   at: number;
   sessionId: string;
   kind:
+    | "notice"
     | "join"
     | "prayer"
     | "gift"

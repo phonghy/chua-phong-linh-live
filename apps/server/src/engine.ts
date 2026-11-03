@@ -166,7 +166,9 @@ export class Engine {
       announcements: s.announcements
         .filter(
           (a) =>
-            a.sessionId === s.session.id && now - a.at < 60000 && now >= a.at,
+            a.sessionId === s.session.id &&
+            (a.kind === "join" ? now - a.at < 20000 : now - a.at < 1800000) &&
+            now >= a.at,
         )
         .map((a) => ({ ...a })),
       session: {
@@ -209,7 +211,7 @@ export class Engine {
     const finalText = safeText.startsWith("Chùa Tâm An")
       ? safeText
       : `Chùa Tâm An xin thông báo: ${safeText}`;
-    this.announce("prayer", finalText);
+    this.announce("notice", finalText);
     this.state.prayers.push({
       id: ++this.state.prayerId,
       userName: "Chùa Tâm An (Thông báo)",
@@ -259,7 +261,7 @@ export class Engine {
         count,
       );
       this.announce(
-        "prayer",
+        "notice",
         `Chùa Tâm An xin thông báo: Đại lễ thắp đèn Tam Bảo bắt đầu. Nguyện ánh sáng trí tuệ xua tan u tối, mang lại an lạc cho muôn nơi.`,
       );
     } else if (action === "bow" && intensity >= 4) {
@@ -301,21 +303,18 @@ export class Engine {
       text,
     };
     this.recentAnnouncements.set(item.id, item);
-    if (this.recentAnnouncements.size > 512) {
+    if (this.recentAnnouncements.size > 1000) {
       for (const [key, val] of this.recentAnnouncements) {
-        if (now - val.at > 180000) this.recentAnnouncements.delete(key);
+        if (now - val.at > 1800000) this.recentAnnouncements.delete(key);
       }
     }
     this.state.announcements = this.state.announcements.filter(
-      (a) => now - a.at < 60000 && a.sessionId === this.state.session.id,
+      (a) =>
+        a.sessionId === this.state.session.id &&
+        (a.kind === "join" ? now - a.at < 20000 : now - a.at < 1800000),
     );
-    if (this.state.announcements.length >= 64) {
-      const dropIndex = this.state.announcements.findIndex((a) => a.kind === "join");
-      if (dropIndex !== -1) {
-        this.state.announcements.splice(dropIndex, 1);
-      } else {
-        this.state.announcements.shift();
-      }
+    if (kind === "join") {
+      this.state.announcements = this.state.announcements.filter((a) => a.kind !== "join");
     }
     this.state.announcements.push(item);
   }
@@ -741,10 +740,14 @@ export class Engine {
             now - s.followThanks[key] >= cooldownMs)
         ) {
           if (!isMockAdmin) s.followThanks[key] = now;
-          this.announce(
-            "join",
-            `Chùa Tâm An xin chào đón ${this.safeName(event.user.name)} đã ghé thăm chùa.${this.blessing("join")}`,
-          );
+          this.joinCounter++;
+          const audienceCount = s.audience.current ?? s.visitors.length;
+          // Từ 100 người xem trở lên: cấu trúc 1/5 (cứ 1 người chào và chúc, 4 người tiếp theo chỉ chào không chúc)
+          const shouldBless = audienceCount < 100 || (this.joinCounter % 5 === 1);
+          const greetingText = shouldBless
+            ? `Chùa Tâm An xin chào đón ${this.safeName(event.user.name)} đã ghé thăm chùa.${this.blessing("join")}`
+            : `Chùa Tâm An xin chào đón ${this.safeName(event.user.name)} đã ghé thăm chùa.`;
+          this.announce("join", greetingText);
         }
       }
       if (action) {

@@ -1,12 +1,13 @@
 import type { Announcement } from "../../../packages/shared/src/index.ts";
 
-const MAX_QUEUE = 16;
+const MAX_QUEUE = 500;
 const TIMEOUT_MS = 15_000;
 
 function getPriority(kind: Announcement["kind"]): number {
-  if (kind === "gift") return 3; // Ưu tiên 1 (cao nhất): Người tặng quà
-  if (kind === "prayer") return 2; // Ưu tiên 2: Người cầu nguyện (!cau, lời chúc)
-  return 1; // Ưu tiên 3: Chào mừng đến thăm chùa, follow, share
+  if (kind === "notice") return 4; // Ưu tiên 1 (cao nhất): Thông báo của chùa
+  if (kind === "gift") return 3;   // Ưu tiên 2: Người tặng quà (lưu lại đọc cho bằng hết)
+  if (kind === "prayer") return 2; // Ưu tiên 3: Người cầu mong (lưu lại đọc cho bằng hết)
+  return 1;                        // Ưu tiên 4: Người vào xem live (join, follow, share)
 }
 
 /** Serial local WAV playback on the dedicated voice bus with prioritized queue. */
@@ -56,7 +57,7 @@ export class Narrator {
     for (const item of incoming) {
       const priority = getPriority(item.kind);
       // Quà và cầu nguyện có hạn đợi tối đa 60s, chào mừng 20s
-      const maxAge = priority >= 2 ? 60_000 : 20_000;
+      const maxAge = priority >= 2 ? 1_800_000 : 15_000;
       const age = now - item.at;
       if (item.sessionId === sessionId && age >= 0 && age <= maxAge) {
         this.enqueue(item);
@@ -68,7 +69,18 @@ export class Narrator {
 
   private enqueue(item: Announcement) {
     const priority = getPriority(item.kind);
-    // Chèn item theo thứ tự ưu tiên: 3 (Quà) > 2 (Cầu nguyện) > 1 (Chào mừng)
+
+    // Người vào xem live (priority === 1): KHÔNG LƯU DỒN, đến lúc đọc thấy ai thì đọc người đó
+    // Nếu trong hàng đợi đã có 1 người join/vào xem đang đợi, thay thế bằng người mới nhất này!
+    if (priority === 1) {
+      const existingJoinIdx = this.queue.findIndex((q) => getPriority(q.kind) === 1);
+      if (existingJoinIdx !== -1) {
+        this.queue[existingJoinIdx] = item;
+        return;
+      }
+    }
+
+    // Chèn item theo thứ tự ưu tiên: 4 (Thông báo chùa) > 3 (Quà) > 2 (Cầu nguyện) > 1 (Người vào)
     // Cùng mức ưu tiên thì giữ nguyên thứ tự đến trước (FIFO)
     // Không ngắt câu đang đọc dở, chỉ ưu tiên đưa lên đầu hàng đợi để đọc ngay sau khi câu hiện tại kết thúc
     let insertIdx = this.queue.length;
@@ -80,11 +92,9 @@ export class Narrator {
     }
     this.queue.splice(insertIdx, 0, item);
 
-    // Không để dồn quá 2 lời chào mừng cấp 1 trong hàng đợi
-    const lowPriorityCount = this.queue.filter(
-      (q) => getPriority(q.kind) === 1,
-    ).length;
-    if (lowPriorityCount > 2) {
+    // Đảm bảo không tích tụ quá 1 thông báo người vào live (priority 1) trong hàng đợi
+    const lowPriorityCount = this.queue.filter((q) => getPriority(q.kind) === 1).length;
+    if (lowPriorityCount > 1) {
       for (let i = this.queue.length - 1; i >= 0; i--) {
         if (getPriority(this.queue[i].kind) === 1) {
           this.queue.splice(i, 1);
@@ -93,19 +103,13 @@ export class Narrator {
       }
     }
 
-    // Giữ hàng đợi không vượt quá MAX_QUEUE (ưu tiên loại bỏ thông báo cấp 1 trước)
+    // Nếu vượt quá MAX_QUEUE, chỉ drop priority 1 (không bao giờ drop notice, gift, prayer)
     if (this.queue.length > MAX_QUEUE) {
-      let dropIdx = -1;
       for (let i = this.queue.length - 1; i >= 0; i--) {
         if (getPriority(this.queue[i].kind) === 1) {
-          dropIdx = i;
+          this.queue.splice(i, 1);
           break;
         }
-      }
-      if (dropIdx !== -1) {
-        this.queue.splice(dropIdx, 1);
-      } else {
-        this.queue.pop();
       }
     }
   }
@@ -147,7 +151,7 @@ export class Narrator {
       while (this.queue.length && !this.stopped) {
         const item = this.queue.shift()!;
         const priority = getPriority(item.kind);
-        const maxAge = priority >= 2 ? 60_000 : 20_000;
+        const maxAge = priority >= 2 ? 1_800_000 : 15_000;
         if (this.serverNow() - item.at > maxAge) continue;
         await this.play(item);
       }
@@ -163,7 +167,7 @@ export class Narrator {
     const controller = (this.controller = new AbortController());
     const timeout = window.setTimeout(() => controller.abort(), TIMEOUT_MS);
     const priority = getPriority(item.kind);
-    const maxAge = priority >= 2 ? 60_000 : 20_000;
+    const maxAge = priority >= 2 ? 1_800_000 : 15_000;
 
     try {
       const response = await fetch(

@@ -64,7 +64,7 @@ export const settingsSchema = z.object({
   ceremonyVolume: z.number().min(0).max(1),
   narratorEnabled: z.boolean().default(true),
   narratorVolume: z.number().min(0).max(1).default(0.85),
-  lanternBrightness: z.number().min(0).max(1).default(0.35),
+  lanternBrightness: z.number().min(0).max(1).default(0.45),
 });
 export type Settings = z.infer<typeof settingsSchema>;
 export const defaultSettings: Settings = {
@@ -75,7 +75,7 @@ export const defaultSettings: Settings = {
   ceremonyVolume: 0.45,
   narratorEnabled: true,
   narratorVolume: 0.85,
-  lanternBrightness: 0.35,
+  lanternBrightness: 0.45,
 };
 export const tiktokUsernameSchema = z
   .string()

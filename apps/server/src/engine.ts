@@ -823,6 +823,18 @@ export class Engine {
     });
     return { result };
   }
+  resetSessionProgress() {
+    this.commit(() => {
+      this.state.progress = 0;
+      this.state.milestones = [];
+      this.state.settings.lanternBrightness = 0.45;
+      this.announce(
+        "notice",
+        "Chùa Tâm An xin thông báo: Bắt đầu phiên cùng thắp sáng chánh điện mới. Nguyện ánh sáng quang minh gia hộ cho muôn nơi.",
+      );
+    });
+  }
+
   updateSettings(settings: Settings) {
     this.commit(() => {
       this.state.settings = settings;

@@ -34,6 +34,7 @@ import {
 import {
   actionLabels,
   defaultSettings,
+  nextMilestone,
   type Action,
   type AdminSnapshot,
   type GiftMapping,
@@ -333,6 +334,12 @@ export function Admin() {
     await api("settings", { ...state.settings, lanternBrightness: clamped }, "PUT");
     setToast(`Đã chỉnh độ sáng đèn lồng: ${Math.round(clamped * 100)}% (${getLightingText(clamped)}).`);
   }
+
+  async function resetSession() {
+    if (!confirm("Bắt đầu phiên LIVE mới? Tiến trình 'Cùng thắp sáng chánh điện' sẽ được đưa về 0.")) return;
+    await api("session/reset", {}, "POST");
+    setToast("Đã đặt lại tiến trình Thắp Sáng Chánh Điện về 0 cho phiên LIVE mới.");
+  }
   useEffect(() => {
     if (!running) return;
     let active = true,
@@ -617,133 +624,30 @@ export function Admin() {
                   <ArrowUpRight size={15} />
                 </button>
 
-                {/* BẢNG ĐIỀU KHIỂN GÓC CAMERA & ÁNH SÁNG CHÙA */}
+                {/* BẢNG ĐIỀU KHIỂN ÁNH SÁNG & PHIÊN LIVE */}
                 <div className="camera-lighting-console">
-                  <div className="console-section">
-                    <div className="console-header">
-                      <div className="console-title">
-                        <Camera size={14} />
-                        <strong>Góc Camera Chánh Điện</strong>
-                      </div>
-                      <span className="console-badge">Chuyển mượt 3s</span>
-                    </div>
-                    <div className="camera-btn-grid">
-                      <button
-                        type="button"
-                        className={`cam-card-btn ${!state?.settings.autoCamera && state?.settings.camera === "wide" ? "active" : ""}`}
-                        disabled={!connected || busy}
-                        onClick={() => void run(() => updateCamera("wide", false))}
-                      >
-                        <span className="cam-icon">🏛️</span>
-                        <div className="cam-info">
-                          <span className="cam-name">Toàn cảnh</span>
-                          <span className="cam-sub">Bao quát 200 người</span>
-                        </div>
-                      </button>
-                      <button
-                        type="button"
-                        className={`cam-card-btn ${!state?.settings.autoCamera && state?.settings.camera === "altar" ? "active" : ""}`}
-                        disabled={!connected || busy}
-                        onClick={() => void run(() => updateCamera("altar", false))}
-                      >
-                        <span className="cam-icon">🪷</span>
-                        <div className="cam-info">
-                          <span className="cam-name">Cận Tam Bảo</span>
-                          <span className="cam-sub">Kim thân Phật & Lư hương</span>
-                        </div>
-                      </button>
-                      <button
-                        type="button"
-                        className={`cam-card-btn ${!state?.settings.autoCamera && (state?.settings.camera === "honor" || state?.settings.camera === "close") ? "active" : ""}`}
-                        disabled={!connected || busy}
-                        onClick={() => void run(() => updateCamera("honor", false))}
-                      >
-                        <span className="cam-icon">🙏</span>
-                        <div className="cam-info">
-                          <span className="cam-name">3 Vị trí danh dự</span>
-                          <span className="cam-sub">Hàng trước dâng lễ</span>
-                        </div>
-                      </button>
-                      <button
-                        type="button"
-                        className={`cam-card-btn ${!state?.settings.autoCamera && state?.settings.camera === "aisle" ? "active" : ""}`}
-                        disabled={!connected || busy}
-                        onClick={() => void run(() => updateCamera("aisle", false))}
-                      >
-                        <span className="cam-icon">🚶</span>
-                        <div className="cam-info">
-                          <span className="cam-name">Giữa hành lang</span>
-                          <span className="cam-sub">Lối đi giữa nhìn lên</span>
-                        </div>
-                      </button>
-                      <button
-                        type="button"
-                        className={`cam-card-btn ${!state?.settings.autoCamera && state?.settings.camera === "left" ? "active" : ""}`}
-                        disabled={!connected || busy}
-                        onClick={() => void run(() => updateCamera("left", false))}
-                      >
-                        <span className="cam-icon">👈</span>
-                        <div className="cam-info">
-                          <span className="cam-name">Khối Tả</span>
-                          <span className="cam-sub">Phật tử cánh trái</span>
-                        </div>
-                      </button>
-                      <button
-                        type="button"
-                        className={`cam-card-btn ${!state?.settings.autoCamera && state?.settings.camera === "right" ? "active" : ""}`}
-                        disabled={!connected || busy}
-                        onClick={() => void run(() => updateCamera("right", false))}
-                      >
-                        <span className="cam-icon">👉</span>
-                        <div className="cam-info">
-                          <span className="cam-name">Khối Hữu</span>
-                          <span className="cam-sub">Phật tử cánh phải</span>
-                        </div>
-                      </button>
-                    </div>
-                    <div className="camera-action-row">
-                      <button
-                        type="button"
-                        className="cam-quick-action peek-wide-action"
-                        disabled={!connected || busy}
-                        onClick={() => void peekWideView()}
-                        title="Đưa cam ra toàn cảnh trong 3s rồi tự trở lại góc cũ"
-                      >
-                        ⏱️ Lướt Toàn Cảnh (3s rồi trở lại)
-                      </button>
-                      <button
-                        type="button"
-                        className={`cam-quick-action ${state?.settings.autoCamera ? "active-tour" : ""}`}
-                        disabled={!connected || busy}
-                        onClick={() => void run(() => updateCamera(state?.settings.camera ?? "wide", !state?.settings.autoCamera))}
-                      >
-                        🔄 {state?.settings.autoCamera ? "Đang lia tự động (Bấm để dừng)" : "Bật Tự Động Lia Góc"}
-                      </button>
-                    </div>
-                  </div>
-
                   <div className="console-section lighting-section">
                     <div className="console-header">
                       <div className="console-title">
-                        <Sun size={14} />
-                        <strong>Ánh Sáng Đèn Lồng & Đại Điện</strong>
+                        <Sun size={15} />
+                        <strong>Ánh Sáng Đèn Lồng & Chánh Điện</strong>
                       </div>
                       <span className="lighting-val-pill">
-                        {Math.round((state?.settings.lanternBrightness ?? 0.35) * 100)}% · {getLightingText(state?.settings.lanternBrightness ?? 0.35)}
+                        {Math.round((state?.settings.lanternBrightness ?? 0.45) * 100)}% · {getLightingText(state?.settings.lanternBrightness ?? 0.45)}
                       </span>
                     </div>
                     <p className="console-sub-desc">
-                      Hạ bớt bóng đèn lồng giúp gian thờ trầm ấm, tĩnh lặng và không bị lóa tranh gỗ.
+                      Khởi đầu phiên live nên đặt <strong>Dịu nhẹ (45%)</strong> hoặc <strong>Vừa phải (60%)</strong>. Khi khách tặng quà dâng lễ, ánh sáng sẽ cùng bừng sáng dần.
                     </p>
                     <div className="lighting-preset-pills">
                       {[
                         { val: 0.0, label: "🌑 Tắt bóng (0%)" },
-                        { val: 0.15, label: "🌙 Tối trầm (15%)" },
-                        { val: 0.35, label: "🕯️ Dịu nhẹ (35% - Chuẩn)" },
-                        { val: 0.6, label: "💡 Vừa phải (60%)" },
-                        { val: 0.9, label: "☀️ Sáng rõ (90%)" },
+                        { val: 0.20, label: "🌙 Tối trầm (20%)" },
+                        { val: 0.45, label: "🕯️ Dịu nhẹ (45% - Ban đầu)" },
+                        { val: 0.60, label: "💡 Vừa phải (60%)" },
+                        { val: 0.90, label: "☀️ Sáng rõ (90%)" },
                       ].map((p) => {
-                        const curVal = state?.settings.lanternBrightness ?? 0.35;
+                        const curVal = state?.settings.lanternBrightness ?? 0.45;
                         const isMatch = Math.abs(curVal - p.val) < 0.04;
                         return (
                           <button
@@ -760,8 +664,9 @@ export function Admin() {
                     </div>
                     <div className="lighting-slider-box">
                       <div className="slider-labels">
-                        <span>Tối trầm</span>
-                        <span>Dịu nhẹ (Chuẩn)</span>
+                        <span>Tối trầm (20%)</span>
+                        <span>Dịu nhẹ (45%)</span>
+                        <span>Vừa phải (60%)</span>
                         <span>Sáng rõ</span>
                       </div>
                       <input
@@ -769,12 +674,37 @@ export function Admin() {
                         min="0"
                         max="1"
                         step="0.05"
-                        value={state?.settings.lanternBrightness ?? 0.35}
+                        value={state?.settings.lanternBrightness ?? 0.45}
                         onChange={(e) => void updateLighting(Number(e.target.value))}
                         disabled={!connected || busy}
                         className="light-slider"
                       />
                     </div>
+                  </div>
+
+                  {/* TIẾN TRÌNH CÙNG THẮP SÁNG CHÁNH ĐIỆN & RESET PHIÊN LIVE */}
+                  <div className="console-section session-reset-section">
+                    <div className="console-header">
+                      <div className="console-title">
+                        <Flame size={14} />
+                        <strong>Cùng Thắp Sáng Chánh Điện</strong>
+                      </div>
+                      <span className="progress-mini-badge">
+                        {(state?.progress ?? 0).toLocaleString("vi-VN")} / {nextMilestone(state?.progress ?? 0).toLocaleString("vi-VN")} điểm
+                      </span>
+                    </div>
+                    <p className="console-sub-desc">
+                      Điểm cộng dồn từ quà tặng và lễ bái. Khi bắt đầu buổi live mới, bấm nút bên dưới để đưa về 0:
+                    </p>
+                    <button
+                      type="button"
+                      className="reset-session-btn"
+                      disabled={!connected || busy}
+                      onClick={() => void resetSession()}
+                    >
+                      <RotateCcw size={13} />
+                      Bắt đầu phiên LIVE mới (Reset về 0)
+                    </button>
                   </div>
                 </div>
               </section>

@@ -2321,3 +2321,41 @@ textarea::placeholder {
   cursor: pointer;
   margin: 0;
 }
+
+
+/* Session Reset & Progress */
+.session-reset-section {
+  background: #fbf9f4;
+  border: 1px dashed #d5caa8;
+}
+.progress-mini-badge {
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid #fde68a;
+}
+.reset-session-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid #d97706;
+  background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+  color: #92400e;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 1px 3px rgba(146, 64, 14, 0.08);
+}
+.reset-session-btn:hover {
+  background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(146, 64, 14, 0.15);
+}

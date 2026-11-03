@@ -711,18 +711,23 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
         const lanternPulse = this.reducedMotion ? 0 : 0.03;
         const userBrightness = typeof state.settings.lanternBrightness === "number"
           ? state.settings.lanternBrightness
-          : 0.35;
+          : 0.45;
         const brightFactor = Math.max(0, Math.min(1, userBrightness));
 
+        // Tiến trình 'Cùng thắp sáng chánh điện':
+        // Điểm càng tăng hướng về mốc (100, 250, 500...) thì ánh sáng chánh điện càng bừng sáng tự nhiên
+        const curMilestone = state.progress < 100 ? 100 : state.progress < 250 ? 250 : state.progress < 500 ? 500 : (Math.floor(state.progress / 500) + 1) * 500;
+        const progressRatio = Math.min(1, Math.max(0, (state.progress ?? 0) / Math.max(1, curMilestone)));
+        const progressGlow = progressRatio * 0.12 + Math.min(0.12, (state.milestones?.length ?? 0) * 0.03);
+        const effectiveBrightness = Math.max(0, Math.min(1, brightFactor + (brightFactor > 0.05 ? progressGlow : 0)));
+
         // Tỷ lệ ánh sáng toàn diện cho chánh điện & bóng đèn lồng:
-        // Thay đổi trực tiếp độ sáng của tranh đại điện và bàn thờ:
-        // - 0.0: Tắt hẳn bóng / Rất tối (22% ánh sáng nền, huyền ảo tĩnh mịch)
-        // - 0.15: Tối trầm mặc (40% ánh sáng nền, ấm áp thiền định)
-        // - 0.35: Dịu nhẹ ấm cúng (62% ánh sáng nền, êm mắt chuẩn chùa không còn chói)
+        // - 0.0: Tắt hẳn bóng / Rất tối (20% ánh sáng nền)
+        // - 0.20: Tối trầm mặc (40% ánh sáng nền, tĩnh mịch)
+        // - 0.45: Dịu nhẹ ấm cúng (64% ánh sáng nền, chuẩn ban đầu phiên live không chói)
         // - 0.60: Vừa phải (78% ánh sáng nền)
         // - 0.90: Sáng rõ (95% ánh sáng nền)
-        // - 1.00: Sáng tối đa (100% ánh sáng nền)
-        const ambientRatio = 0.22 + brightFactor * 0.78;
+        const ambientRatio = 0.20 + effectiveBrightness * 0.80;
         const r = Math.min(255, Math.round(255 * ambientRatio));
         const g = Math.min(255, Math.round(246 * ambientRatio));
         const b = Math.min(255, Math.round(228 * ambientRatio));
@@ -731,13 +736,13 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
         this.hall.setTint(ambientTint);
         this.altar.setTint(ambientTint);
 
-        if (brightFactor <= 0.01) {
+        if (effectiveBrightness <= 0.01) {
           this.light.setAlpha(0);
           this.lanterns.forEach((l) => l.setAlpha(0));
         } else {
-          // Quầng sáng đèn lồng và đèn chánh điện tăng giảm rõ rệt theo độ sáng người dùng chọn
+          // Quầng sáng đèn lồng và đèn chánh điện bừng sáng theo tiến trình và cài đặt
           const lightAlpha =
-            (0.06 + brightFactor * 0.54 + lightPulse + glow * 0.2) *
+            (0.06 + effectiveBrightness * 0.54 + lightPulse + glow * 0.2) *
               ceremonyDim +
             ceremonySurge;
           this.light.setAlpha(Math.min(1, Math.max(0, lightAlpha)));
@@ -745,7 +750,7 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
           this.lanterns.forEach((l, i) => {
             const lanternAlpha =
               (0.03 +
-                brightFactor * 0.38 +
+                effectiveBrightness * 0.38 +
                 (this.reducedMotion
                   ? 0
                   : Math.sin(visualTime * 0.0012 + i) * lanternPulse) +

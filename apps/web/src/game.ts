@@ -578,7 +578,7 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
       if (state) {
         const mode = state.settings.camera;
         const cameraPresets: Record<string, { x: number; y: number; zoom: number }> = {
-          altar: { x: 540, y: 975, zoom: 2.2 },   // Cận Tam Bảo (Kim thân Phật & Lư hương nghi ngút)
+          altar: { x: 540, y: 720, zoom: 2.05 },  // Cận Tam Bảo (Nâng cao đưa tượng Phật vào trung tâm)
           honor: { x: 540, y: 1045, zoom: 2.24 }, // 3 Vị trí danh dự trước bàn thờ
           aisle: { x: 540, y: 1140, zoom: 1.48 }, // Giữa hành lang (Lối đi chính giữa nhìn lên)
           left: { x: 335, y: 1320, zoom: 1.85 },  // Khối Tả (Hàng Phật tử cánh trái)
@@ -611,8 +611,8 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
               { x: 540, y: 1010, zoom: 1.08 },
               // 4. CẬN KHỐI PHẬT TỬ CÁNH PHẢI
               { x: 745, y: 1320, zoom: 1.85 },
-              // 5. CẬN CAO kim thân Phật tổ & lư hương nghi ngút khói
-              { x: 540, y: 975, zoom: 2.15 },
+              // 5. CẬN CAO kim thân Phật tổ đưa tượng vào trung tâm
+              { x: 540, y: 720, zoom: 2.05 },
               // 6. Lối đi giữa nhìn lên hàng danh dự và chánh điện
               { x: 540, y: 1140, zoom: 1.48 },
             ];
@@ -712,35 +712,47 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
         const userBrightness = typeof state.settings.lanternBrightness === "number"
           ? state.settings.lanternBrightness
           : 0.35;
-        const brightFactor = Math.max(0, userBrightness);
+        const brightFactor = Math.max(0, Math.min(1, userBrightness));
 
-        // Tỷ lệ ánh sáng đèn lồng và chánh điện:
-        // 0.0: Tắt hẳn bóng (chỉ còn tranh gốc)
-        // 0.15: Tối trầm mặc (ấm áp, tĩnh lặng)
-        // 0.35: Dịu nhẹ ấm cúng (chuẩn đề xuất mới, không chói)
-        // 0.60: Vừa phải
-        // 0.90: Sáng rõ
+        // Tỷ lệ ánh sáng toàn diện cho chánh điện & bóng đèn lồng:
+        // Thay đổi trực tiếp độ sáng của tranh đại điện và bàn thờ:
+        // - 0.0: Tắt hẳn bóng / Rất tối (22% ánh sáng nền, huyền ảo tĩnh mịch)
+        // - 0.15: Tối trầm mặc (40% ánh sáng nền, ấm áp thiền định)
+        // - 0.35: Dịu nhẹ ấm cúng (62% ánh sáng nền, êm mắt chuẩn chùa không còn chói)
+        // - 0.60: Vừa phải (78% ánh sáng nền)
+        // - 0.90: Sáng rõ (95% ánh sáng nền)
+        // - 1.00: Sáng tối đa (100% ánh sáng nền)
+        const ambientRatio = 0.22 + brightFactor * 0.78;
+        const r = Math.min(255, Math.round(255 * ambientRatio));
+        const g = Math.min(255, Math.round(246 * ambientRatio));
+        const b = Math.min(255, Math.round(228 * ambientRatio));
+        const ambientTint = Phaser.Display.Color.GetColor(r, g, b);
+
+        this.hall.setTint(ambientTint);
+        this.altar.setTint(ambientTint);
+
         if (brightFactor <= 0.01) {
           this.light.setAlpha(0);
           this.lanterns.forEach((l) => l.setAlpha(0));
         } else {
-          const lightScale = brightFactor / 0.35;
-          const baseLightAlpha =
-            (0.22 +
-              Math.min(0.08, state.milestones.length * 0.02) +
-              lightPulse +
-              glow * 0.3) * lightScale;
-          this.light.setAlpha(baseLightAlpha * ceremonyDim + ceremonySurge);
+          // Quầng sáng đèn lồng và đèn chánh điện tăng giảm rõ rệt theo độ sáng người dùng chọn
+          const lightAlpha =
+            (0.06 + brightFactor * 0.54 + lightPulse + glow * 0.2) *
+              ceremonyDim +
+            ceremonySurge;
+          this.light.setAlpha(Math.min(1, Math.max(0, lightAlpha)));
 
           this.lanterns.forEach((l, i) => {
-            const baseLanternAlpha =
-              (0.07 +
-                Math.min(0.1, state.milestones.length * 0.02) +
+            const lanternAlpha =
+              (0.03 +
+                brightFactor * 0.38 +
                 (this.reducedMotion
                   ? 0
                   : Math.sin(visualTime * 0.0012 + i) * lanternPulse) +
-                glow * 0.2) * lightScale;
-            l.setAlpha(baseLanternAlpha * ceremonyDim + ceremonySurge * 0.6);
+                glow * 0.15) *
+                ceremonyDim +
+              ceremonySurge * 0.6;
+            l.setAlpha(Math.min(1, Math.max(0, lanternAlpha)));
           });
         }
 
@@ -750,6 +762,7 @@ export function mountGame(parent: HTMLElement, client: TempleClient) {
         for (const v of state.visitors) {
           const art = this.visitors.get(v.id);
           if (!art) continue;
+          art.sprite.setTint(ambientTint);
           // Xếp 2 bên (trái/phải), mỗi hàng 8 người dàn ra 2 bên, giữ nguyên hành lang giữa, bỏ hàng đầu tiên (bắt đầu từ y=1196) và kéo dài 10 hàng xuống sát cuối màn hình (y=1790)
           const side = v.slot % 2; // 0: Bên trái, 1: Bên phải
           const sideIdx = Math.floor(v.slot / 2); // 0..99 (mỗi bên 100 người)

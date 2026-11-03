@@ -235,6 +235,11 @@ export function Admin() {
     }
   }
   async function sendAction(action: Action) {
+    if (action === "lotus" || action === "incense" || action === "bow") {
+      await api("ceremonies", { action, name, intensity: 2 });
+      setToast(`${actionLabels[action]} · Đã kích hoạt (Hiệu ứng chánh điện & Giọng AI đọc)`);
+      return;
+    }
     const result = await api<{ result: string }>(
       "events",
       makeEvent("comment", name, {

@@ -111,6 +111,7 @@ const initial = (now: number): DurableState => ({
 export class Engine {
   private state: DurableState;
   private joinCounter = 0;
+  private recentAnnouncements = new Map<string, Announcement>();
   connector: ConnectorStatus = {
     mode: "mock",
     state: "connected",
@@ -165,7 +166,7 @@ export class Engine {
       announcements: s.announcements
         .filter(
           (a) =>
-            a.sessionId === s.session.id && now - a.at < 30000 && now >= a.at,
+            a.sessionId === s.session.id && now - a.at < 60000 && now >= a.at,
         )
         .map((a) => ({ ...a })),
       session: {
@@ -209,6 +210,13 @@ export class Engine {
       ? safeText
       : `Chùa Tâm An xin thông báo: ${safeText}`;
     this.announce("prayer", finalText);
+    this.state.prayers.push({
+      id: ++this.state.prayerId,
+      userName: "Chùa Tâm An (Thông báo)",
+      text: safeText,
+      status: "approved",
+      createdAt: this.now(),
+    });
   }
   triggerCeremony(
     action: Ceremony["action"],
@@ -216,6 +224,32 @@ export class Engine {
     intensity = 4,
     count = 1,
   ) {
+    const s = this.state,
+      now = this.now();
+    let v = s.visitors.find((vis) => vis.name === name);
+    const chosenAction: Action = action === "milestone" ? "bow" : (action as Action);
+    if (!v) {
+      let slot = 0;
+      while (s.visitors.some((vis) => vis.slot === slot)) slot++;
+      if (slot < 200) {
+        const newVisitor: Visitor = {
+          id: `ceremony:${name}`,
+          name,
+          slot,
+          variant: 0,
+          joinedAt: now,
+          action: chosenAction,
+          actionAt: now,
+          expiresAt: now + 600000,
+        };
+        s.visitors.push(newVisitor);
+        v = newVisitor;
+      }
+    } else {
+      v.action = chosenAction;
+      v.actionAt = now;
+    }
+
     if (action === "milestone") {
       this.state.progress += 500;
       this.ceremony(
@@ -224,8 +258,25 @@ export class Engine {
         3,
         count,
       );
+      this.announce(
+        "prayer",
+        `Chùa Tâm An xin thông báo: Đại lễ thắp đèn Tam Bảo bắt đầu. Nguyện ánh sáng trí tuệ xua tan u tối, mang lại an lạc cho muôn nơi.`,
+      );
+    } else if (action === "bow" && intensity >= 4) {
+      this.ceremony("bow", name, 4, count);
+      this.announce(
+        "gift",
+        `Chùa Tâm An xin tán dương công đức đại thí chủ ${this.safeName(name)} đã phát tâm cúng dường. Nguyện ánh từ quang Phật đắc đạo phổ chiếu gia đạo bình an cát tường.`,
+      );
     } else {
       this.ceremony(action, name, intensity, count);
+      if (action === "bow") {
+        this.announce("prayer", `Chùa Tâm An xin kính lễ Tam Bảo cùng ${this.safeName(name)}.${this.blessing("prayer")}`);
+      } else if (action === "incense") {
+        this.announce("prayer", `Chùa Tâm An xin dâng nén tâm hương cùng ${this.safeName(name)}.${this.blessing("prayer")}`);
+      } else if (action === "lotus") {
+        this.announce("gift", `Chùa Tâm An xin tri ân ${this.safeName(name)} đã thành tâm dâng hoa sen cúng dường.${this.blessing("gift")}`);
+      }
     }
   }
   announcement(id: string): Announcement | undefined {
@@ -235,22 +286,38 @@ export class Engine {
       )
     )
       return undefined;
-    return this.snapshot().announcements.find((a) => a.id === id);
+    return (
+      this.recentAnnouncements.get(id) ??
+      this.state.announcements.find((a) => a.id === id)
+    );
   }
   private announce(kind: Announcement["kind"], text: string) {
     const now = this.now();
-    this.state.announcements = this.state.announcements
-      .filter(
-        (a) => now - a.at < 30000 && a.sessionId === this.state.session.id,
-      )
-      .slice(-23);
-    this.state.announcements.push({
+    const item: Announcement = {
       id: randomUUID(),
       at: now,
       sessionId: this.state.session.id,
       kind,
       text,
-    });
+    };
+    this.recentAnnouncements.set(item.id, item);
+    if (this.recentAnnouncements.size > 512) {
+      for (const [key, val] of this.recentAnnouncements) {
+        if (now - val.at > 180000) this.recentAnnouncements.delete(key);
+      }
+    }
+    this.state.announcements = this.state.announcements.filter(
+      (a) => now - a.at < 60000 && a.sessionId === this.state.session.id,
+    );
+    if (this.state.announcements.length >= 64) {
+      const dropIndex = this.state.announcements.findIndex((a) => a.kind === "join");
+      if (dropIndex !== -1) {
+        this.state.announcements.splice(dropIndex, 1);
+      } else {
+        this.state.announcements.shift();
+      }
+    }
+    this.state.announcements.push(item);
   }
   private extractPrayer(rawText: string): string | null {
     const isExplicit = /^[!/](?:cau|cầu)/i.test(rawText);
@@ -556,7 +623,11 @@ export class Engine {
         const normalizedCommand = command.toLowerCase();
 
         if (command.toLowerCase() === "!sen") {
-          result = "gift-required";
+          if (event.source === "mock") {
+            action = "lotus";
+          } else {
+            result = "gift-required";
+          }
         } else if (actions[normalizedCommand]) {
           action = actions[normalizedCommand];
         } else {
@@ -662,12 +733,14 @@ export class Engine {
         }
       } else if (event.type === "join") {
         const key = JSON.stringify(["join", event.source, event.user.id]);
+        const isMockAdmin = event.source === "mock";
+        const cooldownMs = isMockAdmin ? 0 : 60000;
         if (
           (event.source === s.session.source || event.source === "mock" || this.connector.mode === "mock") &&
           (s.followThanks[key] === undefined ||
-            now - s.followThanks[key] >= 60000)
+            now - s.followThanks[key] >= cooldownMs)
         ) {
-          s.followThanks[key] = now;
+          if (!isMockAdmin) s.followThanks[key] = now;
           this.announce(
             "join",
             `Chùa Tâm An xin chào đón ${this.safeName(event.user.name)} đã ghé thăm chùa.${this.blessing("join")}`,

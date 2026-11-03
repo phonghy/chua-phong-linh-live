@@ -322,10 +322,10 @@ export class Engine {
     const isExplicit = /^[!/](?:cau|cầu)/i.test(rawText);
     const clean = (str: string) =>
       str
-        .replace(/^[!/](?:cau|cầu)[s:-–—]*/i, "")
+        .replace(/^[!/](?:cau|cầu)[\s:–—\-]*/i, "")
         .replace(/[<>«»[\]{}()]/g, " ")
         .replace(/["'“”‘’]/g, "")
-        .replace(/^[,.\s:-–—]+/, "")
+        .replace(/^[,.\s:–—\-]+/, "")
         .replace(/\s+/g, " ")
         .trim();
 
@@ -336,10 +336,10 @@ export class Engine {
 
     // Tự động nhận diện thông minh các bình luận chúc / cầu an / tâm nguyện tự nhiên
     const chantPrefix =
-      /^(?:nam\s*mô\s*)?(?:a\s*di\s*đà\s*phật|a\s*di\s*da\s*phat|adidaphat|adida\s*phat|phật|bổn\s*sư\s*thích\s*ca\s*mâu\s*ni\s*phật)[,.\s:-–—]*/i;
+      /^(?:nam\s*mô\s*)?(?:a\s*di\s*đà\s*phật|a\s*di\s*da\s*phat|adidaphat|adida\s*phat|phật|bổn\s*sư\s*thích\s*ca\s*mâu\s*ni\s*phật)[\s,.:–—\-]*/i;
     const afterChant = clean(rawText.replace(chantPrefix, ""));
     const prayerPattern =
-      /\b(cầu|chúc|nguyện|mong|xin|bình\s*an|sức\s*khỏe|an\s*lành|cát\s*tường|như\s*ý|hanh\s*thông|may\s*mắn|phù\s*hộ|gia\s*hộ)\b/i;
+      /\b(cầu|chúc|nguyện|mong|xin|bình\s*an|sức\s*khỏe|an\s*lành|cát\s*tường|như\s*ý|hanh\s*thông|may\s*mắn|phù\s*hộ|gia\s*hộ|tai\s*qua|khỏi|khỏe\s*mạnh|an\s*nhiên|an\s*khang|thịnh\s*vượng|bình\s*yên)\b/i;
 
     if (afterChant && (prayerPattern.test(afterChant) || rawText.trim().toLowerCase().startsWith("cầu"))) {
       return afterChant;
